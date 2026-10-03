@@ -1,0 +1,68 @@
+:root {
+  color-scheme: light;
+  --background: #f7f9fc;
+  --surface: #ffffff;
+  --surface-raised: #f0f4fa;
+  --surface-soft: #f8faff;
+  --input: #fbfcfe;
+  --text: #26334a;
+  --text-secondary: #50627b;
+  --text-muted: #65768d;
+  --border: #dde5f0;
+  --border-accent: #bed1f0;
+  --primary: #2865e8;
+  --link: #3569be;
+  --blue-bg: #eaf1ff;
+  --blue-text: #356bc3;
+  --orange-bg: #fff2e7;
+  --orange-text: #a85f24;
+  --purple-bg: #f1eaff;
+  --purple-text: #7a54bb;
+  --green-bg: #eaf6ef;
+  --green-text: #347b5e;
+  --error-bg: #fff1ec;
+  --error-text: #a54535;
+  --error-border: #edc4b9;
+  --overlay: #10213d80;
+  --header: #fffffff2;
+  --nav-background: #fffffff5;
+  --focus: #a5c5fc;
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --background: #101827;
+  --surface: #182338;
+  --surface-raised: #202e45;
+  --surface-soft: #1c2a40;
+  --input: #121e31;
+  --text: #eef3fc;
+  --text-secondary: #c5d1e5;
+  --text-muted: #a2b1c8;
+  --border: #30415a;
+  --border-accent: #405f8b;
+  --primary: #3474f2;
+  --link: #91b7ff;
+  --blue-bg: #203556;
+  --blue-text: #97bcff;
+  --orange-bg: #3b2d26;
+  --orange-text: #f0b77e;
+  --purple-bg: #332a49;
+  --purple-text: #c7a9ff;
+  --green-bg: #203b34;
+  --green-text: #8ed2b0;
+  --error-bg: #3d292d;
+  --error-text: #ffc0ae;
+  --error-border: #6b4344;
+  --overlay: #030811b3;
+  --header: #182338f2;
+  --nav-background: #182338f7;
+  --focus: #6596f0;
+}
+.theme-toggle { display: grid; place-items: center; width: 44px; height: 44px; min-width: 44px; border: 1px solid var(--border); border-radius: 12px; color: var(--link); background: var(--surface-soft); }
+.auth-theme-toggle { position: absolute; top: max(16px, env(safe-area-inset-top)); right: max(16px, env(safe-area-inset-right)); z-index: 2; }
+.theme-settings { padding: 20px 0; margin-bottom: 12px; border-bottom: 1px solid var(--border); }
+.theme-settings h3 { font-size: 16px; }
+.theme-settings p { font-size: 13px; line-height: 1.7; color: var(--text-muted); margin-top: 7px; }
+.theme-options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 15px; }
+.theme-options button { display: flex; justify-content: center; align-items: center; gap: 8px; min-height: 48px; font-size: 13px; background: var(--surface-soft); border: 1px solid var(--border); border-radius: 9px; color: var(--text-muted); }
+.theme-options button.selected { color: var(--link); background: var(--blue-bg); border-color: var(--border-accent); }

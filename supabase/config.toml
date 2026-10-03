@@ -1,0 +1,8 @@
+project_id = "vitra"
+
+# Authentication is verified inside each handler (user JWT for AI, scoped token for Health).
+[functions.analyze-meal]
+verify_jwt = false
+
+[functions.health-steps]
+verify_jwt = false

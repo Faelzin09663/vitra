@@ -1,0 +1,9 @@
+import React from 'react';
+import { createRoot } from 'react-dom/client';
+import { AuthGate } from './auth/AuthGate';
+import { ThemeProvider } from './theme/ThemeProvider';
+import './theme/theme.css';
+import './style.css';
+import './responsive.css';
+const App = React.lazy(() => import('./App'));
+createRoot(document.getElementById('root')!).render(<ThemeProvider><AuthGate>{(user, signOut) => <React.Suspense fallback={<div className="auth-loading" role="status"><span className="spinner"/>Carregando...</div>}><App key={user.id} user={user} signOut={signOut}/></React.Suspense>}</AuthGate></ThemeProvider>);
