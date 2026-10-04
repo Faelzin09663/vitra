@@ -10,7 +10,7 @@
 
 ## Ativar as integrações no Supabase
 
-Na última verificação do projeto conectado, `daily_records` já existia; `daily_steps`, `health_connections` e as duas Edge Functions ainda não existiam. Nesse estado, execute apenas a migração `202610030003_integrations.sql` e publique as funções conforme os próximos passos. Se a configuração já mudou, confira as tabelas antes de repetir migrações.
+O estado remoto precisa ser conferido no painel. Siga MANUAL-STEPS.md para todas as migracoes e deploys das fases 1–9; aplique somente arquivos pendentes. Este desenvolvimento nao verificou a publicacao remota.
 
 As tabelas iniciais `profiles` e `user_data` precisam existir. Se ainda não aplicou, execute as migrações anteriores em ordem. Execute **uma vez** no SQL Editor:
 
@@ -35,7 +35,7 @@ npx supabase functions deploy health-steps --project-ref fukfidkpmfbdapemsbpr --
 
 A análise usa a API REST do Google Gemini, com chave somente no secret `GEMINI_API_KEY` das Edge Functions. Crie a chave no [Google AI Studio](https://aistudio.google.com/apikey) e ative o faturamento no projeto Google Cloud. Não coloque a chave no frontend nem em `VITE_*`. Siga [MANUAL-STEPS.md](MANUAL-STEPS.md) para a migração `202610040002_ai_provider.sql`, configuração e deploy de `analyze-meal`.
 
-O padrão é `gemini-3.1-flash-lite`, estável, de menor custo, com imagens e JSON estruturado conforme a [documentação do modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). O encerramento anunciado é 07/05/2027; planeje trocar antes. `GEMINI_MODEL_MEAL` tem prioridade sobre `GEMINI_MODEL`. `GEMINI_MODEL_BODY` e `GEMINI_MODEL_COACH` preparam futuras funções e seguem o mesmo fallback. Se a qualidade for insuficiente, configure um modelo mais capaz compatível com imagens/schema sem mudar o código. A disponibilidade na sua conta precisa ser validada no deploy.
+O padrão é `gemini-3.1-flash-lite`, estável, de menor custo, com imagens e JSON estruturado conforme a [documentação do modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). O encerramento anunciado é 07/05/2027; planeje trocar antes. `GEMINI_MODEL_MEAL` tem prioridade sobre `GEMINI_MODEL`. `GEMINI_MODEL_BODY` e `GEMINI_MODEL_COACH` configuram fotos corporais e coach e seguem o mesmo fallback. Se a qualidade for insuficiente, configure um modelo mais capaz compatível com imagens/schema sem mudar o código. A disponibilidade na sua conta precisa ser validada no deploy.
 
 `GEMINI_ENDPOINT` é uma base HTTPS administrativa, por padrão `https://generativelanguage.googleapis.com/v1beta`, sem query/credenciais. A chave vai no cabeçalho `x-goog-api-key`, nunca na URL. Usuários não podem escolher URLs. Timeout padrão de 60 s; bloqueios de segurança, quota do provedor e falhas têm mensagens em português. Não há SDK novo ou parâmetros de amostragem.
 
@@ -60,7 +60,7 @@ npx supabase secrets set --env-file supabase/functions/.env.local --project-ref 
 npx supabase functions deploy analyze-meal --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
 ```
 
-A nova quota é genérica: meal 20/hora, body_photo 5/dia, coach/chat juntos 30/hora, buckets UTC e limites administrativos em `ai_quota_settings`. O wrapper antigo permanece compatível, contadores existentes são preservados e o cron limpa buckets de mais de sete dias. Corpo e coach ainda são fases futuras.
+A nova quota é genérica: meal 20/hora, body_photo 5/dia, coach/chat juntos 30/hora, buckets UTC e limites administrativos em `ai_quota_settings`. O wrapper antigo permanece compatível, contadores existentes são preservados e o cron limpa buckets de mais de sete dias. Fotos corporais e coach estao implementados e dependem do deploy descrito abaixo.
 
 ## Passos do Saúde por Atalhos
 
@@ -112,3 +112,9 @@ Execute `202610040005_body_progress.sql` e publique `npx supabase functions depl
 Publique `npx supabase functions deploy coach --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt`. JWT é validado internamente por `auth.getUser`. `GEMINI_MODEL_COACH` sobrescreve o modelo geral. Coach e chat compartilham 30 requisições por hora, incluindo as duas chamadas do fluxo de chat como uma solicitação. Uma falha após consumir quota também conta. Nenhuma resposta altera registros automaticamente.
 
 O termo geral de IA agora é versão 2: solicita nova autorização dos usuários da versão anterior porque inclui resumo de treino, alimentação, peso, hábitos, check-in e desconforto. O consentimento de fotos continua separado, versão 1. O resumo é agregado no servidor, sem nomes, e-mail, IDs pessoais ou fotos. Não coloque informações pessoais nas perguntas. Perguntas ficam na memória da tela.
+
+## Fechamento e ativação
+
+As funções de refeições, fotos corporais e coach estão prontas para deploy, mas só funcionam após migrations/secrets. Todos os comandos e o checklist estão em [MANUAL-STEPS.md](MANUAL-STEPS.md). Também publique `delete-account`, para a exclusão com senha do Perfil. Fotos usam URLs assinadas de 5 minutos e podem ser baixadas separadamente. Backup v3 exporta metadados, não os arquivos binários nem tokens do Saúde.
+
+Treino/evolução e seus recursos usam lazy/Suspense com skeletons. Diálogos têm foco, Tab/Escape e restauração. Telas/botões usam tokens de tema e safe areas; valide no aparelho conforme o checklist. O histórico do chat dura somente enquanto a tela permanece aberta.

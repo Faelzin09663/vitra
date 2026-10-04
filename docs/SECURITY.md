@@ -12,7 +12,7 @@ Fluxo: navegador reencoda pixels em JPEG a 1024 px/qualidade 0,8 → usuário au
 
 A foto permanece em memória, é descartada ao fechar e não é armazenada pelo Vitra. Descrição/foto saem do Supabase e chegam ao Google; não enviamos nome, e-mail, UUID, senha ou JWT. O usuário deve evitar dados pessoais na própria foto/descrição. A aplicação envia store=false e não usa Files API/cache explícito. Isso não elimina retenção de segurança do Google.
 
-Consentimento: `preferences.ai_consent = { version, grantedAt }`, com versão atual e timestamp ISO; null significa desativado. Conta antiga começa sem autorização. Perfil deve ter idade adulta salva (18–100). O servidor lê a preferência do banco por UUID autenticado, ignorando alegações de consentimento/user_id no corpo. Salvar autorização é aguardado antes da chamada. Perfil e tela de análise permitem desativar; a desativação precisa ser sincronizada para valer em todos os dispositivos. Não é possível retirar uma foto que já tenha sido enviada durante uma análise em curso. Futuras fotos do corpo precisarão de consentimento separado e não estão implementadas nesta fase.
+Consentimento: `preferences.ai_consent = { version, grantedAt }`, com versão atual e timestamp ISO; null significa desativado. Conta antiga começa sem autorização. Perfil deve ter idade adulta salva (18–100). O servidor lê a preferência do banco por UUID autenticado, ignorando alegações de consentimento/user_id no corpo. Salvar autorização é aguardado antes da chamada. Perfil e tela de análise permitem desativar; a desativação precisa ser sincronizada para valer em todos os dispositivos. Não é possível retirar uma foto que já tenha sido enviada durante uma análise em curso. Fotos do corpo usam consentimento separado, conforme a secao de fotos abaixo.
 
 O JSON do painel ainda usa último salvamento entre dispositivos: um painel antigo pode substituir preferências. Evite editar simultaneamente; controle de concorrência/revogação resistente a snapshots antigos será necessário antes de múltiplos dispositivos concorrentes. A função sempre verifica o estado atualmente persistido.
 
@@ -34,7 +34,7 @@ ALLOWED_ORIGINS lista origens exatas separadas por vírgula, incluindo http://lo
 
 `consume_ai_request` e `ai_quota_settings` são acessíveis apenas por service_role; clientes não leem/zeram quotas. Limites padrão: meal 20 por hora UTC; body_photo 5 por dia UTC; coach/chat juntos 30 por hora UTC. Tipos desconhecidos são recusados. Limites podem ser alterados administrativamente em ai_quota_settings. O wrapper consume_meal_analysis compartilha a quota nova e mantém clientes já publicados funcionando. Contadores antigos são copiados com greatest para não ganhar nova franquia no deploy. O upsert é atômico.
 
-O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. Modelos/funções body/coach ainda não foram publicados; somente a configuração/quota está preparada.
+O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. Funcoes de corpo e coach existem no codigo e precisam de deploy administrativo.
 
 ## Saúde por Atalhos
 
@@ -66,7 +66,7 @@ A migração 202610040005 cria `progress-photos` privado, com limite de 1,5 MB e
 
 `analyze-body-photos` recebe somente IDs. O JWT do titular rege a leitura de registros e download, sem bypass administrativo. O servidor exige consentimento específico e idade adulta, limita 5 análises por dia, envia somente as fotos escolhidas e notas ao Google e valida a resposta. Plano pago obrigatório; a aplicação não persiste imagens no provedor, mas isso não elimina retenção limitada do próprio Google para segurança. Comparações podem falhar e não são avaliações clínicas. Sinais de sofrimento nas notas interrompem a comparação detalhada.
 
-Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. A exclusão integral da conta e de arquivos será disponibilizada no fechamento.
+Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. O Perfil inclui exclusao de conta com confirmacao textual e senha atual; o servidor remove arquivos proprios antes de excluir o usuario e suas tabelas por cascata.
 
 ## Coach e consultas fechadas
 
@@ -75,3 +75,9 @@ O contexto é montado com cliente Supabase autenticado pelo JWT, em janela de 90
 Perguntas são delimitadas como JSON de dados, sem ferramentas nem escrita. Classificação aceita somente best_lift, avg_nutrient, trend_weight, workouts_count, habit_streak e out_of_scope. Parâmetros, datas e IDs do catálogo são validados; nunca se executa SQL do modelo. A segunda chamada recebe somente o resultado numérico. Schemas fechados e checagem de números sem referência rejeitam respostas inválidas; linguagem natural ainda pode interpretar dados incorretamente. A interface mostra origem, período e quantidade. Aplicar abre formulário e só escreve depois de confirmação explícita.
 
 Consentimento geral versão 2 e idade adulta verificados no servidor. Quota compartilhada de coach/chat usa o mesmo controle atômico da fase 1. Plano pago obrigatório. O chat não persiste por padrão.
+
+## Exclusão de conta e validação final
+
+`delete-account` não aceita um user_id no corpo. Valida JWT, confirmação textual e senha atual pelo Auth; verifica que a reautenticação pertence ao mesmo usuário. Service role existe somente no servidor para remover arquivos sob o prefixo próprio e excluir o usuário; FKs removem os registros por cascata. Arquivos são apagados antes da conta. Se uma operação falhar, os passos já concluídos não são desfeitos; exporte primeiro e tente novamente. Nunca registrar senha ou tokens. RLS não protege contra alguém com acesso à conta do titular ou ao painel administrativo.
+
+Os testes PostgreSQL/WASM aplicam as migrações novas duas vezes, verificam isolamento SELECT/INSERT/UPDATE/DELETE, vínculo de hábitos, fotos/análises, transferência de titular e cascata de conta. O esquema Storage é uma fixture; a API de URLs assinadas/upload e o Auth administrativo precisam de teste remoto com duas contas de teste. Sem promessa de validação de serviços não acessados.

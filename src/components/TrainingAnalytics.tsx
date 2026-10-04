@@ -1,15 +1,228 @@
-import React from 'react';
-import {exercises} from '../data/exercises';
-import {matchExercise} from '../lib/exerciseCatalog';
-import {detectPlateaus,weeklyMuscleBalance,alertsDismissed,dismissUntil,sessionPerformance} from '../lib/analytics';
-import {suggestSubstitutes} from '../lib/substitutes';
-import {useRecords} from '../lib/useRecords';
-import {localDateKey,type Store} from '../lib/store';
-import type {CheckIn} from '../lib/habits';
-export function TrainingAnalytics({store,userId,onChange,compact=false}:{store:Store;userId:string;onChange:(patch:Partial<Store>)=>void;compact?:boolean}){
- const checkins=useRecords<CheckIn>('daily_checkins',userId),[min,setMin]=React.useState(8),[max,setMax]=React.useState(25),today=localDateKey(),plateaus=detectPlateaus(store.workoutLogs,today),balance=weeklyMuscleBalance(store.workoutLogs,exercises,today,min,max),dismissed=alertsDismissed(store.preferences.alertDismissedUntil,today),last=store.workoutLogs.at(-1),performance=last?sessionPerformance(last):null;
- const recent=checkins.rows.filter(r=>r.date>=new Date(Date.now()-7*86400000).toISOString().slice(0,10)&&r.sleep_hours!==null),sleep=recent.length?recent.reduce((sum,r)=>sum+(r.sleep_hours||0),0)/recent.length:null;
- return <section className="feature-panel"><h2>{compact?'Resumo e progressão':'Progressão e equilíbrio muscular'}</h2>{performance&&<p>Última sessão: {performance.volume.toFixed(0)} kg × repetições de volume; aquecimentos excluídos.</p>}{last&&<label className="consent-check"><input type="checkbox" checked={Boolean(last.deload)} onChange={e=>onChange({workoutLogs:store.workoutLogs.map(l=>l.id===last.id?{...l,deload:e.target.checked}:l)})}/>Marcar ultima sessao como deload (fora do calculo de plato)</label>}{!plateaus.length&&<p>Nenhum platô detectado com os critérios atuais. São necessárias pelo menos quatro sessões comparáveis e dados em duas janelas de três semanas.</p>}{plateaus.map(p=>{const ex=exercises.find(e=>e.id===p.exerciseId)||matchExercise(p.name),sub=ex?suggestSubstitutes(ex,{equipmentAvailable:['barra','halteres','máquina','polia','peso do corpo','kettlebell','elástico','outro']}):[];return <article key={p.key}><h3>Possível platô: {p.name}</h3><p>{p.sessions} sessões · {p.stalledDays} dias desde a referência · melhor 1RM estimado: {p.before.toFixed(1)} → {p.after.toFixed(1)} kg, de {p.from} a {p.to}.</p><p>Considere variar a faixa de repetições, revisar o descanso e discutir uma semana mais leve com seu treinador.{sleep!==null?` Sono registrado em ${recent.length} dias: média ${sleep.toFixed(1)} h; avalie sua recuperação.`:' Registre sono nos check-ins para acompanhar sua recuperação.'}</p>{sub.length>0&&<p>Variações equivalentes para conversar com seu treinador: {sub.slice(0,3).map(s=>s.exercise.name).join(', ')}.</p>}</article>;})}
- {!compact&&<><div className="feature-filters"><label>Mínimo de séries por semana<input type="number" min={0} max={50} value={min} onChange={e=>setMin(Math.min(max,Number(e.target.value)))}/></label><label>Máximo de séries por semana<input type="number" min={min} max={100} value={max} onChange={e=>setMax(Math.max(min,Number(e.target.value)))}/></label></div><p>Período: {balance.from} a {balance.to}. Média por 4 semanas de calendário. Primário conta 1, secundário 0,5.</p>{Object.entries(balance.weekly).map(([group,value])=><div className="muscle-bar" key={group}><span>{group}</span><meter aria-label={`Séries semanais de ${group}`} min={0} max={Math.max(max+10,value)} low={min} high={max} optimum={(min+max)/2} value={value}/><strong>{value.toFixed(1)}</strong></div>)}<p>{balance.unknown?`${balance.unknown} séries não associadas à biblioteca ficaram fora do cálculo.`:''}</p>{!balance.enough?<p>Alertas disponíveis após registros em pelo menos duas semanas diferentes.</p>:dismissed?<p>Alertas dispensados até {store.preferences.alertDismissedUntil}.<button onClick={()=>onChange({preferences:{...store.preferences,alertDismissedUntil:undefined}})}>Reativar</button></p>:<><div role="status">{balance.alerts.map((a,i)=><p key={i}>{a}</p>)}</div><button onClick={()=>onChange({preferences:{...store.preferences,alertDismissedUntil:dismissUntil(today)}})}>Dispensar alertas por 4 semanas</button></>}</>}
- <p className="sub">Estimativas informativas. Carga total não é comparável entre máquinas, peso corporal e exercícios diferentes. Revise com um profissional.</p></section>;
+import React from "react";
+import { exercises } from "../data/exercises";
+import { matchExercise } from "../lib/exerciseCatalog";
+import {
+  detectPlateaus,
+  weeklyMuscleBalance,
+  alertsDismissed,
+  dismissUntil,
+  sessionPerformance,
+} from "../lib/analytics";
+import { suggestSubstitutes } from "../lib/substitutes";
+import { useRecords } from "../lib/useRecords";
+import { localDateKey, type Store } from "../lib/store";
+import type { CheckIn } from "../lib/habits";
+export function TrainingAnalytics({
+  store,
+  userId,
+  onChange,
+  compact = false,
+}: {
+  store: Store;
+  userId: string;
+  onChange: (patch: Partial<Store>) => void;
+  compact?: boolean;
+}) {
+  const checkins = useRecords<CheckIn>("daily_checkins", userId),
+    [min, setMin] = React.useState(8),
+    [max, setMax] = React.useState(25),
+    today = localDateKey(),
+    plateaus = detectPlateaus(store.workoutLogs, today),
+    balance = weeklyMuscleBalance(
+      store.workoutLogs,
+      exercises,
+      today,
+      min,
+      max,
+    ),
+    dismissed = alertsDismissed(store.preferences.alertDismissedUntil, today),
+    last = store.workoutLogs.at(-1),
+    performance = last ? sessionPerformance(last) : null;
+  const recent = checkins.rows.filter(
+      (r) =>
+        r.date >=
+          new Date(Date.now() - 7 * 86400000).toISOString().slice(0, 10) &&
+        r.sleep_hours !== null,
+    ),
+    sleep = recent.length
+      ? recent.reduce((sum, r) => sum + (r.sleep_hours || 0), 0) / recent.length
+      : null;
+  return (
+    <section className="feature-panel">
+      <h2>
+        {compact ? "Resumo e progressão" : "Progressão e equilíbrio muscular"}
+      </h2>
+      {performance && (
+        <p>
+          Última sessão: {performance.volume.toFixed(0)} kg × repetições de
+          volume; aquecimentos excluídos.
+        </p>
+      )}
+      {last && (
+        <label className="consent-check">
+          <input
+            type="checkbox"
+            checked={Boolean(last.deload)}
+            onChange={(e) =>
+              onChange({
+                workoutLogs: store.workoutLogs.map((l) =>
+                  l.id === last.id ? { ...l, deload: e.target.checked } : l,
+                ),
+              })
+            }
+          />
+          Marcar ultima sessao como deload (fora do calculo de plato)
+        </label>
+      )}
+      {!plateaus.length && (
+        <p>
+          Nenhum platô detectado com os critérios atuais. São necessárias pelo
+          menos quatro sessões comparáveis e dados em duas janelas de três
+          semanas.
+        </p>
+      )}
+      {plateaus.map((p) => {
+        const ex =
+            exercises.find((e) => e.id === p.exerciseId) ||
+            matchExercise(p.name),
+          sub = ex
+            ? suggestSubstitutes(ex, {
+                equipmentAvailable: [
+                  "barra",
+                  "halteres",
+                  "máquina",
+                  "polia",
+                  "peso do corpo",
+                  "kettlebell",
+                  "elástico",
+                  "outro",
+                ],
+              })
+            : [];
+        return (
+          <article key={p.key}>
+            <h3>Possível platô: {p.name}</h3>
+            <p>
+              {p.sessions} sessões · {p.stalledDays} dias desde a referência ·
+              melhor 1RM estimado: {p.before.toFixed(1)} → {p.after.toFixed(1)}{" "}
+              kg, de {p.from} a {p.to}.
+            </p>
+            <p>
+              Considere variar a faixa de repetições, revisar o descanso e
+              discutir uma semana mais leve com seu treinador.
+              {sleep !== null
+                ? ` Sono registrado em ${recent.length} dias: média ${sleep.toFixed(1)} h; avalie sua recuperação.`
+                : " Registre sono nos check-ins para acompanhar sua recuperação."}
+            </p>
+            {sub.length > 0 && (
+              <p>
+                Variações equivalentes para conversar com seu treinador:{" "}
+                {sub
+                  .slice(0, 3)
+                  .map((s) => s.exercise.name)
+                  .join(", ")}
+                .
+              </p>
+            )}
+          </article>
+        );
+      })}
+      {!compact && (
+        <>
+          <div className="feature-filters">
+            <label>
+              Mínimo de séries por semana
+              <input
+                type="number"
+                min={0}
+                max={50}
+                value={min}
+                onChange={(e) => setMin(Math.min(max, Number(e.target.value)))}
+              />
+            </label>
+            <label>
+              Máximo de séries por semana
+              <input
+                type="number"
+                min={min}
+                max={100}
+                value={max}
+                onChange={(e) => setMax(Math.max(min, Number(e.target.value)))}
+              />
+            </label>
+          </div>
+          <p>
+            Período: {balance.from} a {balance.to}. Média por 4 semanas de
+            calendário. Primário conta 1, secundário 0,5.
+          </p>
+          {Object.entries(balance.weekly).map(([group, value]) => (
+            <div className="muscle-bar" key={group}>
+              <span>{group}</span>
+              <meter
+                aria-label={`Séries semanais de ${group}`}
+                min={0}
+                max={Math.max(max + 10, value)}
+                low={min}
+                high={max}
+                optimum={(min + max) / 2}
+                value={value}
+              />
+              <strong>{value.toFixed(1)}</strong>
+            </div>
+          ))}
+          <p>
+            {balance.unknown
+              ? `${balance.unknown} séries não associadas à biblioteca ficaram fora do cálculo.`
+              : ""}
+          </p>
+          {!balance.enough ? (
+            <p>
+              Alertas disponíveis após registros em pelo menos duas semanas
+              diferentes.
+            </p>
+          ) : dismissed ? (
+            <p>
+              Alertas dispensados até {store.preferences.alertDismissedUntil}.
+              <button
+                onClick={() =>
+                  onChange({
+                    preferences: {
+                      ...store.preferences,
+                      alertDismissedUntil: undefined,
+                    },
+                  })
+                }
+              >
+                Reativar
+              </button>
+            </p>
+          ) : (
+            <>
+              <div role="status">
+                {balance.alerts.map((a, i) => (
+                  <p key={i}>{a}</p>
+                ))}
+              </div>
+              <button
+                onClick={() =>
+                  onChange({
+                    preferences: {
+                      ...store.preferences,
+                      alertDismissedUntil: dismissUntil(today),
+                    },
+                  })
+                }
+              >
+                Dispensar alertas por 4 semanas
+              </button>
+            </>
+          )}
+        </>
+      )}
+      <p className="sub">
+        Estimativas informativas. Carga total não é comparável entre máquinas,
+        peso corporal e exercícios diferentes. Revise com um profissional.
+      </p>
+    </section>
+  );
 }

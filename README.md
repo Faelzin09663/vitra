@@ -1,79 +1,63 @@
 # Vitra
 
-Webapp de treino, alimentação e hábitos com React 19, TypeScript, Vite e Supabase.
+Webapp pessoal de treino, alimentação e hábitos em React 19, TypeScript, Vite e Supabase. Interface em português, mobile-first, temas Claro/Escuro/Sistema.
 
-## Funcionalidades
+## Recursos
 
-- Cadastro com nome, e-mail e senha, confirmação de e-mail, recuperação de senha e login.
-- Modelos de treino personalizados por dia da semana; carga, repetições e descanso.
-- Cronômetro por timestamps, pausas e recuperação após suspensão da página.
-- Água diária, cardio semanal em quilômetros, refeições e macros.
-- Peso e evolução, perfil com estimativas de IMC e calorias, metas e exportação JSON.
-- Análise de refeições pelo Google Gemini, com consentimento versionado verificado no servidor, revisão editável e confirmação antes de salvar. A foto é reduzida e reencodada sem EXIF; não é armazenada no Vitra.
-- Passos manuais ou importados pelo app Atalhos do iPhone.
-- Layout mobile-first e temas Claro, Escuro e Sistema, com preferência salva neste dispositivo.
+- Cadastro com nome, e-mail e senha; confirmação, login e recuperação.
+- Vários modelos de treino e agenda semanal; biblioteca original com 134 exercícios, personalizados no Supabase e sete programas importáveis sem sobrescrever modelos.
+- Sessões com snapshot, substituições com motivo, registros de desconforto e alerta conservador de recorrência.
+- Modo academia: um exercício por vez, valores do histórico, carga/repetições em um toque, tipos de série, recordes estimados, descanso, desfazer e Wake Lock.
+- Água, refeições/macros, cardio em quilômetros, peso a cada três dias e perfil com IMC/calorias que acompanham o peso.
+- Medidas, gráficos, estimativa por circunferências e fotos privadas sem EXIF, comparação por ângulo e download/exclusão.
+- Check-in diário, média móvel de sete dias, hábitos por agenda, sequências e calendário de 90 dias.
+- Volume, 1RM estimado, possível platô e equilíbrio muscular com dados mínimos e alertas dispensáveis.
+- Gemini: refeições revisáveis, análise corporal opcional, coach e chat numérico com consultas fechadas, consentimentos e quotas.
+- Passos manuais ou importados por Atalhos do iPhone; backup completo JSON e exclusão autenticada de conta.
+
+As sugestões são informativas, sem diagnóstico ou prescrição. IA exige idade adulta, consentimento e plano pago do Gemini.
 
 ## Executar
 
-Requer Node compatível com Vite e npm.
+Com Node compatível com Vite instalado:
 
 ```sh
 npm ci
 npm run dev
 ```
 
-Copie `.env.example` para `.env.local` e preencha somente `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Chave anon pública também é aceita. Não usar service role ou chave de IA no frontend. Variáveis `NEXT_PUBLIC_*` precisam ser renomeadas para Vite.
+Copie `.env.example` para `.env.local` e configure apenas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` (anon pública também aceita). Renomeie variáveis NEXT_PUBLIC para VITE neste projeto. Nunca coloque chave de IA ou service role no frontend.
 
-Em Supabase → Authentication → URL Configuration, configure Site URL e Redirect URLs para `http://localhost:5173` e o domínio HTTPS publicado. O cadastro/recuperação retornam à origem atual. Para uso público configure [SMTP próprio](https://supabase.com/docs/guides/auth/auth-smtp). Reinicie o servidor ao mudar o ambiente.
+Configure Site URL/Redirect URLs no Supabase Auth para localhost e seu domínio HTTPS. Para uso público configure [SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Reinicie o servidor ao alterar ambiente.
 
-## Banco e integrações
+## Ativar no Supabase
 
-As migrações ficam em `supabase/migrations/`, em ordem. Execute somente as pendentes: as três primeiras não são idempotentes. As duas de 04/10/2026 são idempotentes e preservam dados.
+Siga [MANUAL-STEPS.md](docs/MANUAL-STEPS.md), em ordem: faturamento/chave Google, rotação da chave anterior, migrações, bucket privado, secrets e deploy. Código pronto não significa que migrations/functions já estejam publicadas.
 
-`user_data` ainda guarda o documento do painel, metas, perfil, modelos, séries e logs. `daily_records` arquiva os dias por gatilho transacional. Passos/conexões e quotas têm tabelas próprias. A troca do provedor não migra nem apaga os logs antigos.
+Logs legados permanecem em `user_data` e `daily_records`, sem migração destrutiva de datas ou histórico. Novos registros usam tabelas próprias com RLS por titular e datas ISO. Sessões continuam por timestamps.
 
-A tela mostra status de salvamento/repetição e salva antes de sair. Offline permanece em memória; mantenha a página aberta enquanto houver alterações pendentes. Em dois dispositivos prevalece o último painel salvo, sem mesclagem.
+O salvamento do painel é serializado, com estado de sincronização e repetição. Offline fica em memória: mantenha a página aberta até sincronizar. Entre dispositivos, o último documento salvo prevalece, sem mesclagem. Tabelas novas usam upsert por titular/data ou ID.
 
-Para ativar IA, siga [MANUAL-STEPS.md](docs/MANUAL-STEPS.md): plano pago do Gemini com faturamento ativo, secret `GEMINI_API_KEY` no Supabase, origens permitidas, migração de quotas e deploy de `analyze-meal`. O modelo padrão é `gemini-3.1-flash-lite`, configurável por função sem editar o código. A IA exige perfil adulto e consentimento; registros manuais continuam disponíveis.
+Backup v3 inclui todas as tabelas novas, registros arquivados e painel, com paginação. Não inclui tokens, credenciais ou bytes de fotos; baixe as imagens separadamente. Importação de backup ainda não existe.
 
-Veja [INTEGRATIONS.md](docs/INTEGRATIONS.md) para o timer, Gemini, perfil e Atalhos; [SECURITY.md](docs/SECURITY.md) para privacidade, quotas, rotação e revogação; [PLAN-FEATURES.md](docs/PLAN-FEATURES.md) para o reconhecimento e fases futuras.
-
-## Validação
+## Validar
 
 ```sh
 npm test
 npm run build
-npx deno check supabase/functions/analyze-meal/index.ts supabase/functions/health-steps/index.ts
-```
-
-Vitest/Testing Library usam clientes e provedor simulados; nenhuma chamada real ao Gemini. Cobrem autenticação, salvamento, histórico, timer, perfil, consentimento, revisão, foto reduzida, CORS e erros do provedor.
-
-Há também verificação SQL isolada com PostgreSQL/WASM (sem banco remoto):
-
-```sh
+npx deno check supabase/functions/analyze-meal/index.ts supabase/functions/analyze-body-photos/index.ts supabase/functions/coach/index.ts supabase/functions/health-steps/index.ts supabase/functions/delete-account/index.ts
 npx deno run --node-modules-dir=auto --allow-read --allow-env --allow-sys tests/sql/ai-quota.check.ts
+npx deno run --node-modules-dir=auto --allow-read --allow-env --allow-sys tests/sql/features-rls.check.ts
 ```
 
-Essa verificação testa quotas, wrapper, permissões, limpeza e idempotência; o agendador Cron é simulado. Verifique o cron no Supabase e os recursos iOS em um iPhone.
+Vitest/Testing Library usam Supabase e IA simulados. PostgreSQL/WASM verifica SQL/RLS, quota e idempotência, sem banco remoto; Cron e esquema Storage são fixtures. Não houve chamada real ao Gemini nem teste físico no iPhone. Valide publicação, faturamento, URLs assinadas e Atalhos no ambiente real seguindo o checklist manual.
 
-## Estrutura
+## Documentação
 
-`src/`: app, componentes, autenticação, tema, lógica e persistência.
-`supabase/functions/`: handlers, provedor Gemini e Edge Functions.
-`supabase/migrations/`: esquema/RLS e quotas.
-`tests/`: testes locais; `docs/`: plano, integrações, segurança e publicação.
+- [Integrações e iOS](docs/INTEGRATIONS.md).
+- [Privacidade, Storage e segurança](docs/SECURITY.md).
+- [Regras das análises](docs/ANALYTICS.md).
+- [Plano e fases concluídas](docs/PLAN-FEATURES.md).
+- [Alterações](CHANGELOG.md).
 
-O build estático fica em `dist/`; publique em HTTPS com as duas variáveis públicas de ambiente. As funções/secrets/migrações são publicados separadamente no Supabase. O webapp instalado ainda não oferece Live Activities/HealthKit direto nem fila offline durável.
-Biblioteca: 134 exercicios originais, busca e filtros, personalizados no Supabase e sete programas importaveis sem sobrescrever treinos.
-
-Fase 3: substituicoes preservam o modelo e registram a origem no historico. Relatos de desconforto usam `202610040004_session_tools.sql`; aviso conservador com 3 relatos da mesma regiao em 14 dias.
-
-Fase 4: modo academia com autofill, descanso absoluto, tipos de serie, recordes estimados e desfazer. Wake Lock retoma com visibilitychange; som depende do navegador e autorizacao por toque. Sem migracao adicional.
-
-Evolução: medidas em cm, estimativas por medidas, fotos privadas, comparação por ângulo e análise visual opcional com Gemini, consentimento específico e idade adulta. Veja `docs/ANALYTICS.md` e `docs/MANUAL-STEPS.md`.
-
-Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por agenda, calendario de 90 dias e agua/treino derivados. Execute `202610040006_checkins_habits.sql`. Sem notificacao push; lembrete dentro do app.
-
-Análises de progressão: volume, 1RM estimado, possível platô, distribuição muscular e alertas dispensáveis. As regras e limitações estão em `docs/ANALYTICS.md`.
-
-Coach: resumo semanal, sugestões de treino/alimentação com confirmação manual e chat sobre seus números dos últimos 90 dias. Consentimento atualizado e plano pago necessários. Chat não grava conversas por padrão.
+`src/pages/` carrega treino/evolução por demanda; `src/components/` contém fluxos, `src/data/` o catálogo versionado e programas, `src/lib/` cálculos/persistência. Backend em `supabase/functions/` e esquema em `supabase/migrations/`.

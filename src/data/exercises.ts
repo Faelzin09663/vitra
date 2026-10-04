@@ -1,43 +1,423 @@
-export const muscleGroups = ['peito','costas','ombros','bíceps','tríceps','antebraços','quadríceps','posterior','glúteos','panturrilha','abdômen','lombar','corpo inteiro'] as const;
-export const movementPatterns = ['empurrar horizontal','empurrar vertical','puxar horizontal','puxar vertical','agachar','dobradiça de quadril','passada','isolado','core','cardio'] as const;
-export const equipmentTypes = ['barra','halteres','máquina','polia','peso do corpo','kettlebell','elástico','outro'] as const;
-export type Muscle = typeof muscleGroups[number];
-export type Pattern = typeof movementPatterns[number];
-export type Equipment = typeof equipmentTypes[number];
-export type CatalogExercise = { id: string; name: string; aliases: string[]; primaryMuscle: Muscle; secondaryMuscles: Muscle[]; muscleGroup: Muscle; movementPattern: Pattern; equipment: Equipment; difficulty: 'iniciante'|'intermediário'|'avançado'; instructions: string[]; tips: string[]; commonMistakes: string[] };
-type Group = { muscle: Muscle; secondary: Muscle[]; pattern: Pattern; names: string[] };
-const groups: Group[] = [
- {muscle:'peito',secondary:['tríceps','ombros'],pattern:'empurrar horizontal',names:['Supino reto|barra','Supino inclinado|barra','Supino declinado|barra','Supino reto com halteres|halteres','Supino inclinado com halteres|halteres','Supino na máquina|máquina','Flexão de braços|peso do corpo','Flexão inclinada|peso do corpo','Flexão com joelhos apoiados|peso do corpo','Crucifixo reto|halteres|isolado','Crucifixo inclinado|halteres|isolado','Crossover na polia|polia|isolado']},
- {muscle:'costas',secondary:['bíceps','antebraços'],pattern:'puxar horizontal',names:['Remada curvada|barra','Remada unilateral|halteres','Remada baixa|polia','Remada cavalinho|barra','Remada apoiada|halteres','Remada na máquina|máquina','Remada invertida|peso do corpo','Remada com elástico|elástico','Puxada frontal|polia|puxar vertical','Puxada neutra|polia|puxar vertical','Barra fixa pronada|peso do corpo|puxar vertical','Barra fixa supinada|peso do corpo|puxar vertical']},
- {muscle:'ombros',secondary:['tríceps'],pattern:'empurrar vertical',names:['Desenvolvimento de ombros|halteres','Desenvolvimento militar|barra','Desenvolvimento sentado|halteres','Desenvolvimento na máquina|máquina','Desenvolvimento unilateral|kettlebell','Elevação lateral|halteres|isolado','Elevação lateral na polia|polia|isolado','Elevação frontal|halteres|isolado','Crucifixo inverso|halteres|isolado','Face pull|polia|puxar horizontal']},
- {muscle:'bíceps',secondary:['antebraços'],pattern:'isolado',names:['Rosca direta|barra','Rosca alternada|halteres','Rosca martelo|halteres','Rosca concentrada|halteres','Rosca Scott|barra','Rosca Scott na máquina|máquina','Rosca na polia|polia','Rosca inclinada|halteres','Rosca com elástico|elástico','Rosca inversa|barra']},
- {muscle:'tríceps',secondary:[],pattern:'isolado',names:['Tríceps na polia|polia','Tríceps corda|polia','Tríceps testa|barra','Tríceps francês|halteres','Tríceps unilateral acima da cabeça|halteres','Tríceps coice|halteres','Tríceps com elástico|elástico','Extensão de tríceps na máquina|máquina','Flexão fechada|peso do corpo|empurrar horizontal','Supino fechado|barra|empurrar horizontal']},
- {muscle:'antebraços',secondary:[],pattern:'isolado',names:['Flexão de punho com barra|barra','Extensão de punho com barra|barra','Flexão de punho unilateral|halteres','Extensão de punho unilateral|halteres','Pronação de antebraço|halteres','Supinação de antebraço|halteres','Desvio radial de punho|halteres','Aperto de bola|outro','Suspensão na barra|peso do corpo','Caminhada do fazendeiro|kettlebell']},
- {muscle:'quadríceps',secondary:['glúteos'],pattern:'agachar',names:['Agachamento livre|barra','Agachamento frontal|barra','Agachamento goblet|kettlebell','Agachamento com halteres|halteres','Agachamento no Smith|máquina','Leg press|máquina','Agachamento hack|máquina','Agachamento na caixa|peso do corpo','Cadeira extensora|máquina|isolado','Passada com halteres|halteres|passada']},
- {muscle:'posterior',secondary:['glúteos','lombar'],pattern:'dobradiça de quadril',names:['Levantamento romeno|barra','Levantamento romeno com halteres|halteres','Levantamento romeno unilateral|halteres','Stiff|barra','Bom dia|barra','Flexão de joelho deitado|máquina|isolado','Flexão de joelho sentado|máquina|isolado','Flexão de joelho em pé|máquina|isolado','Flexão de joelho com elástico|elástico|isolado','Deslizamento de calcanhares|peso do corpo|isolado']},
- {muscle:'glúteos',secondary:['posterior'],pattern:'dobradiça de quadril',names:['Elevação pélvica|barra','Elevação pélvica na máquina|máquina','Ponte de glúteos|peso do corpo','Ponte unilateral|peso do corpo','Extensão de quadril na polia|polia|isolado','Abdução de quadril na máquina|máquina|isolado','Abdução de quadril com elástico|elástico|isolado','Passada reversa|halteres|passada','Agachamento búlgaro|halteres|passada','Subida no banco|halteres|passada']},
- {muscle:'panturrilha',secondary:[],pattern:'isolado',names:['Panturrilha em pé|máquina','Panturrilha sentada|máquina','Panturrilha no leg press|máquina','Panturrilha no Smith|máquina','Panturrilha unilateral|peso do corpo','Panturrilha com halteres|halteres','Panturrilha no degrau|peso do corpo','Panturrilha com elástico|elástico','Panturrilha com barra|barra','Panturrilha sentada com halteres|halteres']},
- {muscle:'abdômen',secondary:[],pattern:'core',names:['Prancha frontal|peso do corpo','Prancha lateral|peso do corpo','Abdominal curto|peso do corpo','Abdominal na polia|polia','Elevação de joelhos|peso do corpo','Elevação de pernas deitado|peso do corpo','Dead bug|peso do corpo','Pallof press|elástico','Abdominal na máquina|máquina','Prancha com toque no ombro|peso do corpo']},
- {muscle:'lombar',secondary:['glúteos','posterior'],pattern:'core',names:['Bird dog|peso do corpo','Extensão de tronco no banco|peso do corpo','Extensão de tronco na máquina|máquina','Superman alternado|peso do corpo','Prancha reversa|peso do corpo','Dobradiça com bastão|outro|dobradiça de quadril','Bom dia com elástico|elástico|dobradiça de quadril','Levantamento de kettlebell do chão|kettlebell|dobradiça de quadril','Extensão isométrica de tronco|peso do corpo','Ponte com marcha|peso do corpo']},
- {muscle:'corpo inteiro',secondary:[],pattern:'cardio',names:['Caminhada|outro','Corrida|outro','Bicicleta estacionária|máquina','Elíptico|máquina','Remo ergométrico|máquina','Polichinelo|peso do corpo','Marcha estacionária|peso do corpo','Corda|outro','Burpee sem salto|peso do corpo','Swing com kettlebell|kettlebell|dobradiça de quadril']},
-];
-const guides: Record<Pattern,string[]> = {
- 'empurrar horizontal':['Apoie o corpo e alinhe as mãos com o peito.','Desça com controle dentro da amplitude confortável.','Empurre sem perder o apoio do tronco.','Retorne com calma antes da próxima repetição.'],
- 'empurrar vertical':['Organize a base e mantenha o abdômen firme.','Posicione a carga na altura dos ombros.','Empurre para cima sem arquear a lombar.','Desça de forma controlada.'],
- 'puxar horizontal':['Firme os pés e estabilize o tronco.','Puxe os cotovelos para trás sem dar impulso.','Pause brevemente próximo ao corpo.','Estenda os braços mantendo controle.'],
- 'puxar vertical':['Escolha uma pegada confortável e firme a base.','Puxe levando os cotovelos em direção às costelas.','Evite balançar o corpo para completar a repetição.','Retorne sem soltar a carga de repente.'],
- 'agachar':['Ajuste pés e apoios à sua mobilidade.','Flexione quadril e joelhos mantendo os pés apoiados.','Desça somente até a amplitude que consegue controlar.','Suba pressionando o chão ou a plataforma.'],
- 'dobradiça de quadril':['Firme a base e mantenha a carga perto do corpo.','Leve o quadril para trás com joelhos levemente flexionados.','Pare antes de perder a posição confortável da coluna.','Estenda o quadril sem inclinar o tronco para trás.'],
- 'passada':['Escolha apoio firme e espaço livre.','Posicione um pé à frente e outro atrás ou no degrau.','Flexione os joelhos com controle mantendo equilíbrio.','Retorne usando a perna de apoio e alterne quando previsto.'],
- 'isolado':['Ajuste o apoio para estabilizar a região que não se move.','Inicie com carga leve e articulação em posição confortável.','Mova a articulação alvo sem impulso do tronco.','Retorne devagar sem forçar o limite da amplitude.'],
- 'core':['Organize os apoios e respire sem prender o ar.','Mantenha o abdômen ativo e a coluna confortável.','Execute o movimento ou sustente a posição sem compensar.','Interrompa antes de perder o controle da postura.'],
- 'cardio':['Prepare o espaço e ajuste o equipamento quando necessário.','Comece em ritmo leve e aumente gradualmente.','Mantenha respiração e ritmo compatíveis com seu condicionamento.','Reduza o ritmo no final e registre o tempo ou distância.'],
+export const muscleGroups = [
+  "peito",
+  "costas",
+  "ombros",
+  "bíceps",
+  "tríceps",
+  "antebraços",
+  "quadríceps",
+  "posterior",
+  "glúteos",
+  "panturrilha",
+  "abdômen",
+  "lombar",
+  "corpo inteiro",
+] as const;
+export const movementPatterns = [
+  "empurrar horizontal",
+  "empurrar vertical",
+  "puxar horizontal",
+  "puxar vertical",
+  "agachar",
+  "dobradiça de quadril",
+  "passada",
+  "isolado",
+  "core",
+  "cardio",
+] as const;
+export const equipmentTypes = [
+  "barra",
+  "halteres",
+  "máquina",
+  "polia",
+  "peso do corpo",
+  "kettlebell",
+  "elástico",
+  "outro",
+] as const;
+export type Muscle = (typeof muscleGroups)[number];
+export type Pattern = (typeof movementPatterns)[number];
+export type Equipment = (typeof equipmentTypes)[number];
+export type CatalogExercise = {
+  id: string;
+  name: string;
+  aliases: string[];
+  primaryMuscle: Muscle;
+  secondaryMuscles: Muscle[];
+  muscleGroup: Muscle;
+  movementPattern: Pattern;
+  equipment: Equipment;
+  difficulty: "iniciante" | "intermediário" | "avançado";
+  instructions: string[];
+  tips: string[];
+  commonMistakes: string[];
 };
-export function normalizeText(text: string) { return text.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim(); }
-export const exercises: CatalogExercise[] = groups.flatMap(group => group.names.map(row => {
- const [name, gear, pattern] = row.split('|'); const movementPattern = (pattern || group.pattern) as Pattern;
- const id = normalizeText(name).replace(/[^a-z0-9]+/g,'-');
- const aliases = [name.replace(/ com | na | no /g,' '), ...(name === 'Supino reto' ? ['bench press','supino horizontal'] : name === 'Levantamento romeno' ? ['terra romeno','RDL'] : name === 'Agachamento livre' ? ['back squat','agachamento com barra'] : [])];
- return {id,name,aliases,primaryMuscle:group.muscle,secondaryMuscles:group.secondary,muscleGroup:group.muscle,movementPattern,equipment:gear as Equipment,difficulty: (gear === 'peso do corpo' || gear === 'elástico' ? 'iniciante' : 'intermediário') as CatalogExercise['difficulty'],instructions:guides[movementPattern],tips:['Escolha uma carga ou duração que permita manter o controle.','Se sentir dor, interrompa e peça orientação presencial.'],commonMistakes:['Usar impulso para compensar a fadiga.','Continuar depois de perder o controle do movimento.']};
-}));
+type Group = {
+  muscle: Muscle;
+  secondary: Muscle[];
+  pattern: Pattern;
+  names: string[];
+};
+const groups: Group[] = [
+  {
+    muscle: "peito",
+    secondary: ["tríceps", "ombros"],
+    pattern: "empurrar horizontal",
+    names: [
+      "Supino reto|barra",
+      "Supino inclinado|barra",
+      "Supino declinado|barra",
+      "Supino reto com halteres|halteres",
+      "Supino inclinado com halteres|halteres",
+      "Supino na máquina|máquina",
+      "Flexão de braços|peso do corpo",
+      "Flexão inclinada|peso do corpo",
+      "Flexão com joelhos apoiados|peso do corpo",
+      "Crucifixo reto|halteres|isolado",
+      "Crucifixo inclinado|halteres|isolado",
+      "Crossover na polia|polia|isolado",
+    ],
+  },
+  {
+    muscle: "costas",
+    secondary: ["bíceps", "antebraços"],
+    pattern: "puxar horizontal",
+    names: [
+      "Remada curvada|barra",
+      "Remada unilateral|halteres",
+      "Remada baixa|polia",
+      "Remada cavalinho|barra",
+      "Remada apoiada|halteres",
+      "Remada na máquina|máquina",
+      "Remada invertida|peso do corpo",
+      "Remada com elástico|elástico",
+      "Puxada frontal|polia|puxar vertical",
+      "Puxada neutra|polia|puxar vertical",
+      "Barra fixa pronada|peso do corpo|puxar vertical",
+      "Barra fixa supinada|peso do corpo|puxar vertical",
+    ],
+  },
+  {
+    muscle: "ombros",
+    secondary: ["tríceps"],
+    pattern: "empurrar vertical",
+    names: [
+      "Desenvolvimento de ombros|halteres",
+      "Desenvolvimento militar|barra",
+      "Desenvolvimento sentado|halteres",
+      "Desenvolvimento na máquina|máquina",
+      "Desenvolvimento unilateral|kettlebell",
+      "Elevação lateral|halteres|isolado",
+      "Elevação lateral na polia|polia|isolado",
+      "Elevação frontal|halteres|isolado",
+      "Crucifixo inverso|halteres|isolado",
+      "Face pull|polia|puxar horizontal",
+    ],
+  },
+  {
+    muscle: "bíceps",
+    secondary: ["antebraços"],
+    pattern: "isolado",
+    names: [
+      "Rosca direta|barra",
+      "Rosca alternada|halteres",
+      "Rosca martelo|halteres",
+      "Rosca concentrada|halteres",
+      "Rosca Scott|barra",
+      "Rosca Scott na máquina|máquina",
+      "Rosca na polia|polia",
+      "Rosca inclinada|halteres",
+      "Rosca com elástico|elástico",
+      "Rosca inversa|barra",
+    ],
+  },
+  {
+    muscle: "tríceps",
+    secondary: [],
+    pattern: "isolado",
+    names: [
+      "Tríceps na polia|polia",
+      "Tríceps corda|polia",
+      "Tríceps testa|barra",
+      "Tríceps francês|halteres",
+      "Tríceps unilateral acima da cabeça|halteres",
+      "Tríceps coice|halteres",
+      "Tríceps com elástico|elástico",
+      "Extensão de tríceps na máquina|máquina",
+      "Flexão fechada|peso do corpo|empurrar horizontal",
+      "Supino fechado|barra|empurrar horizontal",
+    ],
+  },
+  {
+    muscle: "antebraços",
+    secondary: [],
+    pattern: "isolado",
+    names: [
+      "Flexão de punho com barra|barra",
+      "Extensão de punho com barra|barra",
+      "Flexão de punho unilateral|halteres",
+      "Extensão de punho unilateral|halteres",
+      "Pronação de antebraço|halteres",
+      "Supinação de antebraço|halteres",
+      "Desvio radial de punho|halteres",
+      "Aperto de bola|outro",
+      "Suspensão na barra|peso do corpo",
+      "Caminhada do fazendeiro|kettlebell",
+    ],
+  },
+  {
+    muscle: "quadríceps",
+    secondary: ["glúteos"],
+    pattern: "agachar",
+    names: [
+      "Agachamento livre|barra",
+      "Agachamento frontal|barra",
+      "Agachamento goblet|kettlebell",
+      "Agachamento com halteres|halteres",
+      "Agachamento no Smith|máquina",
+      "Leg press|máquina",
+      "Agachamento hack|máquina",
+      "Agachamento na caixa|peso do corpo",
+      "Cadeira extensora|máquina|isolado",
+      "Passada com halteres|halteres|passada",
+    ],
+  },
+  {
+    muscle: "posterior",
+    secondary: ["glúteos", "lombar"],
+    pattern: "dobradiça de quadril",
+    names: [
+      "Levantamento romeno|barra",
+      "Levantamento romeno com halteres|halteres",
+      "Levantamento romeno unilateral|halteres",
+      "Stiff|barra",
+      "Bom dia|barra",
+      "Flexão de joelho deitado|máquina|isolado",
+      "Flexão de joelho sentado|máquina|isolado",
+      "Flexão de joelho em pé|máquina|isolado",
+      "Flexão de joelho com elástico|elástico|isolado",
+      "Deslizamento de calcanhares|peso do corpo|isolado",
+    ],
+  },
+  {
+    muscle: "glúteos",
+    secondary: ["posterior"],
+    pattern: "dobradiça de quadril",
+    names: [
+      "Elevação pélvica|barra",
+      "Elevação pélvica na máquina|máquina",
+      "Ponte de glúteos|peso do corpo",
+      "Ponte unilateral|peso do corpo",
+      "Extensão de quadril na polia|polia|isolado",
+      "Abdução de quadril na máquina|máquina|isolado",
+      "Abdução de quadril com elástico|elástico|isolado",
+      "Passada reversa|halteres|passada",
+      "Agachamento búlgaro|halteres|passada",
+      "Subida no banco|halteres|passada",
+    ],
+  },
+  {
+    muscle: "panturrilha",
+    secondary: [],
+    pattern: "isolado",
+    names: [
+      "Panturrilha em pé|máquina",
+      "Panturrilha sentada|máquina",
+      "Panturrilha no leg press|máquina",
+      "Panturrilha no Smith|máquina",
+      "Panturrilha unilateral|peso do corpo",
+      "Panturrilha com halteres|halteres",
+      "Panturrilha no degrau|peso do corpo",
+      "Panturrilha com elástico|elástico",
+      "Panturrilha com barra|barra",
+      "Panturrilha sentada com halteres|halteres",
+    ],
+  },
+  {
+    muscle: "abdômen",
+    secondary: [],
+    pattern: "core",
+    names: [
+      "Prancha frontal|peso do corpo",
+      "Prancha lateral|peso do corpo",
+      "Abdominal curto|peso do corpo",
+      "Abdominal na polia|polia",
+      "Elevação de joelhos|peso do corpo",
+      "Elevação de pernas deitado|peso do corpo",
+      "Dead bug|peso do corpo",
+      "Pallof press|elástico",
+      "Abdominal na máquina|máquina",
+      "Prancha com toque no ombro|peso do corpo",
+    ],
+  },
+  {
+    muscle: "lombar",
+    secondary: ["glúteos", "posterior"],
+    pattern: "core",
+    names: [
+      "Bird dog|peso do corpo",
+      "Extensão de tronco no banco|peso do corpo",
+      "Extensão de tronco na máquina|máquina",
+      "Superman alternado|peso do corpo",
+      "Prancha reversa|peso do corpo",
+      "Dobradiça com bastão|outro|dobradiça de quadril",
+      "Bom dia com elástico|elástico|dobradiça de quadril",
+      "Levantamento de kettlebell do chão|kettlebell|dobradiça de quadril",
+      "Extensão isométrica de tronco|peso do corpo",
+      "Ponte com marcha|peso do corpo",
+    ],
+  },
+  {
+    muscle: "corpo inteiro",
+    secondary: [],
+    pattern: "cardio",
+    names: [
+      "Caminhada|outro",
+      "Corrida|outro",
+      "Bicicleta estacionária|máquina",
+      "Elíptico|máquina",
+      "Remo ergométrico|máquina",
+      "Polichinelo|peso do corpo",
+      "Marcha estacionária|peso do corpo",
+      "Corda|outro",
+      "Burpee sem salto|peso do corpo",
+      "Swing com kettlebell|kettlebell|dobradiça de quadril",
+    ],
+  },
+];
+const guides: Record<Pattern, string[]> = {
+  "empurrar horizontal": [
+    "Apoie o corpo e alinhe as mãos com o peito.",
+    "Desça com controle dentro da amplitude confortável.",
+    "Empurre sem perder o apoio do tronco.",
+    "Retorne com calma antes da próxima repetição.",
+  ],
+  "empurrar vertical": [
+    "Organize a base e mantenha o abdômen firme.",
+    "Posicione a carga na altura dos ombros.",
+    "Empurre para cima sem arquear a lombar.",
+    "Desça de forma controlada.",
+  ],
+  "puxar horizontal": [
+    "Firme os pés e estabilize o tronco.",
+    "Puxe os cotovelos para trás sem dar impulso.",
+    "Pause brevemente próximo ao corpo.",
+    "Estenda os braços mantendo controle.",
+  ],
+  "puxar vertical": [
+    "Escolha uma pegada confortável e firme a base.",
+    "Puxe levando os cotovelos em direção às costelas.",
+    "Evite balançar o corpo para completar a repetição.",
+    "Retorne sem soltar a carga de repente.",
+  ],
+  agachar: [
+    "Ajuste pés e apoios à sua mobilidade.",
+    "Flexione quadril e joelhos mantendo os pés apoiados.",
+    "Desça somente até a amplitude que consegue controlar.",
+    "Suba pressionando o chão ou a plataforma.",
+  ],
+  "dobradiça de quadril": [
+    "Firme a base e mantenha a carga perto do corpo.",
+    "Leve o quadril para trás com joelhos levemente flexionados.",
+    "Pare antes de perder a posição confortável da coluna.",
+    "Estenda o quadril sem inclinar o tronco para trás.",
+  ],
+  passada: [
+    "Escolha apoio firme e espaço livre.",
+    "Posicione um pé à frente e outro atrás ou no degrau.",
+    "Flexione os joelhos com controle mantendo equilíbrio.",
+    "Retorne usando a perna de apoio e alterne quando previsto.",
+  ],
+  isolado: [
+    "Ajuste o apoio para estabilizar a região que não se move.",
+    "Inicie com carga leve e articulação em posição confortável.",
+    "Mova a articulação alvo sem impulso do tronco.",
+    "Retorne devagar sem forçar o limite da amplitude.",
+  ],
+  core: [
+    "Organize os apoios e respire sem prender o ar.",
+    "Mantenha o abdômen ativo e a coluna confortável.",
+    "Execute o movimento ou sustente a posição sem compensar.",
+    "Interrompa antes de perder o controle da postura.",
+  ],
+  cardio: [
+    "Prepare o espaço e ajuste o equipamento quando necessário.",
+    "Comece em ritmo leve e aumente gradualmente.",
+    "Mantenha respiração e ritmo compatíveis com seu condicionamento.",
+    "Reduza o ritmo no final e registre o tempo ou distância.",
+  ],
+};
+export function normalizeText(text: string) {
+  return text
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
+}
+export const exercises: CatalogExercise[] = groups.flatMap((group) =>
+  group.names.map((row) => {
+    const [name, gear, pattern] = row.split("|");
+    const movementPattern = (pattern || group.pattern) as Pattern;
+    const id = normalizeText(name).replace(/[^a-z0-9]+/g, "-");
+    const aliases = [
+      name.replace(/ com | na | no /g, " "),
+      ...(name === "Supino reto"
+        ? ["bench press", "supino horizontal"]
+        : name === "Levantamento romeno"
+          ? ["terra romeno", "RDL"]
+          : name === "Agachamento livre"
+            ? ["back squat", "agachamento com barra"]
+            : []),
+    ];
+    return {
+      id,
+      name,
+      aliases,
+      primaryMuscle: group.muscle,
+      secondaryMuscles: group.secondary,
+      muscleGroup: group.muscle,
+      movementPattern,
+      equipment: gear as Equipment,
+      difficulty: (gear === "peso do corpo" || gear === "elástico"
+        ? "iniciante"
+        : "intermediário") as CatalogExercise["difficulty"],
+      instructions: guides[movementPattern],
+      tips: [
+        "Escolha uma carga ou duração que permita manter o controle.",
+        "Se sentir dor, interrompa e peça orientação presencial.",
+      ],
+      commonMistakes: [
+        "Usar impulso para compensar a fadiga.",
+        "Continuar depois de perder o controle do movimento.",
+      ],
+    };
+  }),
+);
 export const EXERCISE_CATALOG_VERSION = 1;
+export function isCatalogExercise(value: unknown): value is CatalogExercise {
+  if (!value || typeof value !== "object") return false;
+  const v = value as CatalogExercise;
+  const strings = (a: unknown) =>
+    Array.isArray(a) &&
+    a.every((s) => typeof s === "string" && s.length <= 600);
+  return (
+    typeof v.id === "string" &&
+    v.id.length <= 100 &&
+    typeof v.name === "string" &&
+    v.name.length >= 2 &&
+    v.name.length <= 120 &&
+    strings(v.aliases) &&
+    muscleGroups.includes(v.primaryMuscle) &&
+    muscleGroups.includes(v.muscleGroup) &&
+    Array.isArray(v.secondaryMuscles) &&
+    v.secondaryMuscles.every((m) => muscleGroups.includes(m)) &&
+    movementPatterns.includes(v.movementPattern) &&
+    equipmentTypes.includes(v.equipment) &&
+    ["iniciante", "intermediário", "avançado"].includes(v.difficulty) &&
+    strings(v.instructions) &&
+    v.instructions.length >= 3 &&
+    v.instructions.length <= 5 &&
+    strings(v.tips) &&
+    strings(v.commonMistakes)
+  );
+}

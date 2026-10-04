@@ -35,7 +35,7 @@ Inventário da busca do provedor anterior (antes da troca): `README.md`; `docs/I
 8. **Coach/chat:** JWT/RLS, consentimento e quotas compartilhadas. Contexto agregado no servidor, sem identidade ou fotos; consulta fechada validada, sem SQL do modelo, sem escrita automática.
 9. **Fechamento:** acessibilidade, carregamento progressivo, docs e export de novas tabelas. Import ainda não existe e não será fingida como disponível. Políticas/testes de isolamento e passos manuais completos.
 
-Todas as tabelas novas terão RLS por titular, FK com cascata adequada e índice `(user_id, data)`; nenhuma publicação remota sem configuração administrativa. O objetivo autorizado nesta rodada termina ao concluir a Fase 1; fases 2–9 aguardam revisão.
+Todas as tabelas novas terão RLS por titular, FK com cascata adequada e índice `(user_id, data)`; nenhuma publicação remota sem configuração administrativa. O pedido posterior autorizou completar as fases 2–9, com commit e validacao separados.
 
 ## Entrega da Fase 1
 
@@ -43,7 +43,7 @@ Todas as tabelas novas terão RLS por titular, FK com cascata adequada e índice
 - Consentimento versionado persistido e verificado por titular no servidor; autorização/revogação no Perfil e na análise; sincronização aguardada antes de enviar. Perfil adulto exigido pelos termos do provedor.
 - Revisão editável de nutrientes, nome, alimentos, porções, confiança e notas; pedidos de esclarecimento não podem ser salvos como estimativa. Foto reduzida a 1024 px em JPEG 0,8, reencodada sem EXIF.
 - Nova migração transacional/idempotente de quotas, contadores antigos preservados, wrapper compatível, coach/chat compartilhando bucket, limpeza pelo job existente. Sem migração geral dos logs/datas nem mudanças em migrações anteriores.
-- Recursos das fases 2–9 não foram implementados nesta rodada. A preparação de quota/modelos não significa que funções de corpo ou coach já existam.
+- Esta secao registra a entrega historica da Fase 1. As fases seguintes foram implementadas na continuacao autorizada abaixo.
 
 Arquivos da Fase 0: `AGENTS.md`, `docs/PLAN-FEATURES.md`.
 
@@ -75,3 +75,13 @@ Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por
 Fase 7: funções puras em `src/lib/analytics/`, reutilizáveis no servidor; janelas mínimas, aquecimentos/deloads e dispensa testados. Sem migração nova.
 
 Fase 8: coach/contexto agregado pelo servidor, chat em duas etapas com consultas fechadas, DTO sem identificadores, consentimento v2, quotas compartilhadas, edição de propostas e testes com mocks. Deno valida as três funções de IA. Sem migração adicional; necessário deploy.
+
+## Fase 9 — Fechamento
+
+Código das fases 0–9 implementado e separado em commits de fase. Treino/evolução em `src/pages/` com lazy; componentes pesados carregam por seleção. Skeletons, estados vazios, link de salto, foco e trap de diálogos revisados. Campos e ações mobile têm pelo menos 48 px, temas e redução de movimento.
+
+Export v3 paginado inclui painel, arquivo diário, passos, exercícios personalizados, desconforto, medidas, fotos (metadados), análises, check-ins, hábitos e logs. Não inclui credenciais/tokens nem bytes das fotos; há download individual. Importação não existia e continua fora da entrega. Exclusão integral com confirmação e senha foi adicionada para completar o fluxo de privacidade de fotos.
+
+Histórico/datas legados preservados; nenhuma migração antiga alterada. Testes de serviços externos são simulados e SQL roda em PostgreSQL isolado. Supabase remoto, Google faturado, Storage API real e aparelho iOS não foram verificados. Guia final em MANUAL-STEPS.md, sem esconder essas dependências administrativas.
+
+Validação do fechamento: `npm run build` passou, 123 testes Vitest passaram em 20 arquivos; checagem Deno das cinco funções passou. PostgreSQL isolado: 50 checagens de quota e 73 de recursos/RLS/Storage/cascata, total 123. Contraste de texto branco nos botões primários: 5,10:1 nos dois temas, acima de AA para texto pequeno. Migrações anteriores permanecem sem alterações. Busca sem referências ao antigo provedor e sem padrões de segredo nos arquivos/bundle; arquivos reais de ambiente não são versionados.

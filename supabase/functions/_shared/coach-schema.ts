@@ -1,12 +1,159 @@
-import {exercises} from '../../../src/data/exercises.ts';
-export type CoachChange={workoutIndex:number;exerciseId:string;sets:number;reps:string;restSeconds:number};
-export type CoachResponse={title:string;observations:string[];suggestions:{action:string;reason:string;change:CoachChange|null}[]};
-const text={type:'string',minLength:1,maxLength:600};
-export const COACH_SCHEMA={type:'object',additionalProperties:false,required:['title','observations','suggestions'],properties:{title:text,observations:{type:'array',minItems:3,maxItems:5,items:text},suggestions:{type:'array',minItems:3,maxItems:5,items:{type:'object',additionalProperties:false,required:['action','reason','change'],properties:{action:text,reason:text,change:{type:['object','null'],additionalProperties:false,required:['workoutIndex','exerciseId','sets','reps','restSeconds'],properties:{workoutIndex:{type:'integer',minimum:0,maximum:99},exerciseId:{type:'string',enum:exercises.map(e=>e.id)},sets:{type:'integer',minimum:1,maximum:6},reps:{type:'string'},restSeconds:{type:'integer',minimum:30,maximum:300}}}}}}}};
-export const CHAT_SCHEMA={type:'object',additionalProperties:false,required:['title','answer'],properties:{title:text,answer:{type:'string',minLength:1,maxLength:1500}}};
-const unsafe=/\b(diagn[oó]stico|anorexia|bulimia|obes[oa]|gord[oa]|fl[aá]cid[oa]|jejum|medicamento|rem[eé]dio|dose|doses|suplemento|suplementos|d[eé]ficit agressivo|parar de comer|passar fome)\b/i;
-export function safeText(value:unknown,max=600):value is string{return typeof value==='string'&&value.length>0&&value.length<=max&&!unsafe.test(value)&&!/[<>]|https?:\/\/|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(value);}
-export function parseCoachResponse(raw:string):CoachResponse{const value=JSON.parse(raw);if(!value||Object.keys(value).sort().join()!==['title','observations','suggestions'].sort().join()||!safeText(value.title)||!Array.isArray(value.observations)||value.observations.length<3||value.observations.length>5||!value.observations.every((v:unknown)=>safeText(v))||!Array.isArray(value.suggestions)||value.suggestions.length<3||value.suggestions.length>5)throw new Error('schema');for(const s of value.suggestions){if(!s||Object.keys(s).sort().join()!==['action','reason','change'].sort().join()||!safeText(s.action)||!safeText(s.reason))throw new Error('schema');if(s.change!==null){const c=s.change;if(!c||Object.keys(c).sort().join()!==['workoutIndex','exerciseId','sets','reps','restSeconds'].sort().join()||!Number.isInteger(c.workoutIndex)||c.workoutIndex<0||c.workoutIndex>99||!exercises.some(e=>e.id===c.exerciseId)||!Number.isInteger(c.sets)||c.sets<1||c.sets>6||typeof c.reps!=='string'||!/^([1-9]|[12]\d|30)([–-]([1-9]|[12]\d|30))?$/.test(c.reps)||!Number.isInteger(c.restSeconds)||c.restSeconds<30||c.restSeconds>300)throw new Error('change');}}return value;}
-export function parseChat(raw:string):{title:string;answer:string}{const v=JSON.parse(raw);if(!v||Object.keys(v).sort().join()!=='answer,title'||!safeText(v.title)||!safeText(v.answer,1500))throw new Error('schema');return v;}
+import { exercises } from "../../../src/data/exercises.ts";
+export type CoachChange = {
+  workoutIndex: number;
+  exerciseId: string;
+  sets: number;
+  reps: string;
+  restSeconds: number;
+};
+export type CoachResponse = {
+  title: string;
+  observations: string[];
+  suggestions: { action: string; reason: string; change: CoachChange | null }[];
+};
+const text = { type: "string", minLength: 1, maxLength: 600 };
+export const COACH_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["title", "observations", "suggestions"],
+  properties: {
+    title: text,
+    observations: { type: "array", minItems: 3, maxItems: 5, items: text },
+    suggestions: {
+      type: "array",
+      minItems: 3,
+      maxItems: 5,
+      items: {
+        type: "object",
+        additionalProperties: false,
+        required: ["action", "reason", "change"],
+        properties: {
+          action: text,
+          reason: text,
+          change: {
+            type: ["object", "null"],
+            additionalProperties: false,
+            required: [
+              "workoutIndex",
+              "exerciseId",
+              "sets",
+              "reps",
+              "restSeconds",
+            ],
+            properties: {
+              workoutIndex: { type: "integer", minimum: 0, maximum: 99 },
+              exerciseId: { type: "string", enum: exercises.map((e) => e.id) },
+              sets: { type: "integer", minimum: 1, maximum: 6 },
+              reps: { type: "string" },
+              restSeconds: { type: "integer", minimum: 30, maximum: 300 },
+            },
+          },
+        },
+      },
+    },
+  },
+};
+export const CHAT_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  required: ["title", "answer"],
+  properties: {
+    title: text,
+    answer: { type: "string", minLength: 1, maxLength: 1500 },
+  },
+};
+const unsafe =
+  /\b(diagn[oó]stico|anorexia|bulimia|obes[oa]|gord[oa]|fl[aá]cid[oa]|jejum|medicamento|rem[eé]dio|dose|doses|suplemento|suplementos|d[eé]ficit agressivo|parar de comer|passar fome)\b/i;
+export function safeText(value: unknown, max = 600): value is string {
+  return (
+    typeof value === "string" &&
+    value.length > 0 &&
+    value.length <= max &&
+    !unsafe.test(value) &&
+    !/[<>]|https?:\/\/|\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/i.test(value)
+  );
+}
+export function parseCoachResponse(raw: string): CoachResponse {
+  const value = JSON.parse(raw);
+  if (
+    !value ||
+    Object.keys(value).sort().join() !==
+      ["title", "observations", "suggestions"].sort().join() ||
+    !safeText(value.title) ||
+    !Array.isArray(value.observations) ||
+    value.observations.length < 3 ||
+    value.observations.length > 5 ||
+    !value.observations.every((v: unknown) => safeText(v)) ||
+    !Array.isArray(value.suggestions) ||
+    value.suggestions.length < 3 ||
+    value.suggestions.length > 5
+  )
+    throw new Error("schema");
+  for (const s of value.suggestions) {
+    if (
+      !s ||
+      Object.keys(s).sort().join() !==
+        ["action", "reason", "change"].sort().join() ||
+      !safeText(s.action) ||
+      !safeText(s.reason)
+    )
+      throw new Error("schema");
+    if (s.change !== null) {
+      const c = s.change;
+      if (
+        !c ||
+        Object.keys(c).sort().join() !==
+          ["workoutIndex", "exerciseId", "sets", "reps", "restSeconds"]
+            .sort()
+            .join() ||
+        !Number.isInteger(c.workoutIndex) ||
+        c.workoutIndex < 0 ||
+        c.workoutIndex > 99 ||
+        !exercises.some((e) => e.id === c.exerciseId) ||
+        !Number.isInteger(c.sets) ||
+        c.sets < 1 ||
+        c.sets > 6 ||
+        typeof c.reps !== "string" ||
+        !/^([1-9]|[12]\d|30)([–-]([1-9]|[12]\d|30))?$/.test(c.reps) ||
+        !Number.isInteger(c.restSeconds) ||
+        c.restSeconds < 30 ||
+        c.restSeconds > 300
+      )
+        throw new Error("change");
+    }
+  }
+  return value;
+}
+export function parseChat(raw: string): { title: string; answer: string } {
+  const v = JSON.parse(raw);
+  if (
+    !v ||
+    Object.keys(v).sort().join() !== "answer,title" ||
+    !safeText(v.title) ||
+    !safeText(v.answer, 1500)
+  )
+    throw new Error("schema");
+  return v;
+}
 /** Reject numerical claims that have no counterpart in the server DTO (incl. rounded values). */
-export function groundedNumbers(texts:string[],context:unknown){const allowed=new Set<number>();const visit=(value:unknown)=>{if(typeof value==='number'&&Number.isFinite(value)){allowed.add(value);allowed.add(Math.round(value));allowed.add(Math.round(value*10)/10);}else if(typeof value==='string'){for(const token of value.match(/\d+(?:[.,]\d+)?/g)||[])allowed.add(Number(token.replace(',','.')));}else if(Array.isArray(value))value.forEach(visit);else if(value&&typeof value==='object')Object.values(value).forEach(visit);};visit(context);return texts.every(text=>(text.match(/\d+(?:[.,]\d+)?/g)||[]).every(token=>allowed.has(Number(token.replace(',','.')))));}
+export function groundedNumbers(texts: string[], context: unknown) {
+  const allowed = new Set<number>();
+  const visit = (value: unknown) => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+      allowed.add(value);
+      allowed.add(Math.round(value));
+      allowed.add(Math.round(value * 10) / 10);
+    } else if (typeof value === "string") {
+      for (const token of value.match(/\d+(?:[.,]\d+)?/g) || [])
+        allowed.add(Number(token.replace(",", ".")));
+    } else if (Array.isArray(value)) value.forEach(visit);
+    else if (value && typeof value === "object")
+      Object.values(value).forEach(visit);
+  };
+  visit(context);
+  return texts.every((text) =>
+    (text.match(/\d+(?:[.,]\d+)?/g) || []).every((token) =>
+      allowed.has(Number(token.replace(",", "."))),
+    ),
+  );
+}
