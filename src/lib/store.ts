@@ -4,12 +4,12 @@ export type Meal = { name: string; calories: number; protein: number; carbs: num
 import { emptyProfile, nutritionEstimates, type PersonalProfile } from './nutrition';
 export type Exercise = { name: string; exerciseId?: string; sets: number; reps: string; restSeconds?: number; replacedFrom?: string; replaceReason?: string };
 export type Workout = { id: string; name: string; focus: string; weekdays: number[]; exercises: Exercise[] };
-export type SetRecord = { load: number; reps: number; done: boolean };
+export type SetRecord = { load: number; reps: number; done: boolean; type?: 'normal'|'aquecimento'|'drop'|'falha' };
 export type WaterEntry = { id: string; date: string; at: string; amount: number };
 export type CardioEntry = { id: string; date: string; at: string; activity: string; minutes: number; distanceKm?: number };
 export type ActiveWorkout = { startedAt: string; pausedAt: string | null; pausedMs: number; restUntil: string | null; workoutId?: string; name?: string; focus?: string; exercises?: Exercise[] };
 export type WeightEntry = { date: string; value: number; workout?: string; workoutMinutes?: number; cardioKm?: number; note?: string };
-export type WorkoutLog = { id: string; date: string; at: string; name: string; exercises: Exercise[]; sets: Record<string, SetRecord>; durationSeconds?: number };
+export type WorkoutLog = { id: string; date: string; at: string; name: string; workoutId?: string; deload?: boolean; exercises: Exercise[]; sets: Record<string, SetRecord>; durationSeconds?: number };
 export type Store = {
   day: string; week: string; water: number; waterGoal: number; calorieGoal: number; cardioGoal: number; cardio: number;
   meals: Meal[]; weights: WeightEntry[]; exercises: Exercise[];
@@ -51,7 +51,7 @@ export function addCardio(store: Store, activity: string, minutes: number, now =
 }
 export function finishWorkout(store: Store, now = new Date()): Partial<Store> {
   const day = dates(now).day;
-  return { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: uid(), date: day, at: now.toISOString(), name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds: elapsedSeconds(store.activeWorkout, now.getTime()), exercises: structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises), sets: structuredClone(store.sets) }] };
+  return { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: uid(), date: day, at: now.toISOString(), workoutId: store.activeWorkout?.workoutId, name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds: elapsedSeconds(store.activeWorkout, now.getTime()), exercises: structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises), sets: structuredClone(store.sets) }] };
 }
 export function startWorkout(store: Store, now = new Date()): Partial<Store> {
   const workout = currentWorkout(store);
