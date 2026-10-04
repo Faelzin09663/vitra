@@ -75,3 +75,5 @@ Evolução: medidas em cm, estimativas por medidas, fotos privadas, comparação
 Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por agenda, calendario de 90 dias e agua/treino derivados. Execute `202610040006_checkins_habits.sql`. Sem notificacao push; lembrete dentro do app.
 
 Análises de progressão: volume, 1RM estimado, possível platô, distribuição muscular e alertas dispensáveis. As regras e limitações estão em `docs/ANALYTICS.md`.
+
+Coach: resumo semanal, sugestões de treino/alimentação com confirmação manual e chat sobre seus números dos últimos 90 dias. Consentimento atualizado e plano pago necessários. Chat não grava conversas por padrão.

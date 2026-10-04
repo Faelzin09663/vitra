@@ -106,3 +106,9 @@ Esses campos ficam em `user_data`, sob as regras de acesso existentes. Não é n
 ## Fotos de progresso
 
 Execute `202610040005_body_progress.sql` e publique `npx supabase functions deploy analyze-body-photos --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt`. A validação JWT ocorre no handler. O bucket é privado e criado pela migração. `GEMINI_MODEL_BODY` sobrescreve `GEMINI_MODEL`; se a análise visual do Flash-Lite for insuficiente, configure um modelo mais capaz pelo secret sem mudar código. Ative faturamento e consentimento específico antes de analisar.
+
+## Coach e chat
+
+Publique `npx supabase functions deploy coach --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt`. JWT é validado internamente por `auth.getUser`. `GEMINI_MODEL_COACH` sobrescreve o modelo geral. Coach e chat compartilham 30 requisições por hora, incluindo as duas chamadas do fluxo de chat como uma solicitação. Uma falha após consumir quota também conta. Nenhuma resposta altera registros automaticamente.
+
+O termo geral de IA agora é versão 2: solicita nova autorização dos usuários da versão anterior porque inclui resumo de treino, alimentação, peso, hábitos, check-in e desconforto. O consentimento de fotos continua separado, versão 1. O resumo é agregado no servidor, sem nomes, e-mail, IDs pessoais ou fotos. Não coloque informações pessoais nas perguntas. Perguntas ficam na memória da tela.

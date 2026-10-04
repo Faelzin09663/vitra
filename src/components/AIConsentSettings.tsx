@@ -11,11 +11,11 @@ export function AIConsentSettings({ consent, age, onChange }: { consent: AIConse
   }
   return <section className="ai-consent" aria-label="Privacidade da inteligência artificial">
     <h2>Você escolhe usar IA</h2>
-    <p>Ao clicar em Analisar, a descrição e a foto da refeição serão enviadas ao Google (Gemini). A foto fica somente na memória desta página até o envio e não é salva no Vitra.</p>
+    <p>Coach e chat enviam um resumo de treino, alimentação, peso, check-ins, hábitos e desconforto ao Google, somente quando você solicitar. Nome, e-mail e fotos não entram nesse resumo. Este termo atualizado também abrange análise de refeições.</p><p>Ao clicar em Analisar, a descrição e a foto da refeição serão enviadas ao Google (Gemini). A foto fica somente na memória desta página até o envio e não é salva no Vitra.</p>
     <p>O serviço deve usar o plano pago, que não usa esse conteúdo para melhorar produtos. O Google pode retê-lo por um período limitado para segurança. Evite fotos com pessoas ou informações pessoais.</p>
     <p>Os resultados são estimativas e não substituem um profissional de saúde. Você pode desativar a IA aqui ou no Perfil a qualquer momento. Registros manuais continuam disponíveis.</p>
     {!adult && <p role="status">Para usar IA, complete e salve seu perfil com idade de 18 anos ou mais.</p>}
-    {enabled ? <p role="status">IA autorizada em {new Date(consent!.grantedAt).toLocaleDateString('pt-BR')}.</p> : <label className="consent-check"><input type="checkbox" checked={checked} onChange={event => setChecked(event.target.checked)} disabled={busy || !adult}/>Autorizo o envio da refeição ao Google para análise.</label>}
+    {enabled ? <p role="status">IA autorizada em {new Date(consent!.grantedAt).toLocaleDateString('pt-BR')}.</p> : <label className="consent-check"><input type="checkbox" checked={checked} onChange={event => setChecked(event.target.checked)} disabled={busy || !adult}/>Autorizo o envio do resumo e da refeição ao Google para análise.</label>}
     {error && <p role="alert" className="auth-alert">{error}</p>}
     <button type="button" className={enabled ? 'text' : 'primary'} disabled={busy || (!enabled && (!checked || !adult))} onClick={change}>{busy ? 'Salvando sua escolha…' : enabled ? 'Desativar IA' : 'Autorizar IA'}</button>
   </section>;

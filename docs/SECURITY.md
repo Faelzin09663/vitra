@@ -67,3 +67,11 @@ A migração 202610040005 cria `progress-photos` privado, com limite de 1,5 MB e
 `analyze-body-photos` recebe somente IDs. O JWT do titular rege a leitura de registros e download, sem bypass administrativo. O servidor exige consentimento específico e idade adulta, limita 5 análises por dia, envia somente as fotos escolhidas e notas ao Google e valida a resposta. Plano pago obrigatório; a aplicação não persiste imagens no provedor, mas isso não elimina retenção limitada do próprio Google para segurança. Comparações podem falhar e não são avaliações clínicas. Sinais de sofrimento nas notas interrompem a comparação detalhada.
 
 Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. A exclusão integral da conta e de arquivos será disponibilizada no fechamento.
+
+## Coach e consultas fechadas
+
+O contexto é montado com cliente Supabase autenticado pelo JWT, em janela de 90 dias; a API não aceita contexto do cliente. Nomes, e-mail, notas, fotos e caminhos não compõem o DTO enviado ao modelo. Exercícios referidos no contexto usam somente nomes do catálogo original. Notas podem produzir um sinal booleano de bem-estar, sem transmissão do texto. Há limites de leitura, e períodos incompletos causam erro em vez de silenciosamente gerar conclusões.
+
+Perguntas são delimitadas como JSON de dados, sem ferramentas nem escrita. Classificação aceita somente best_lift, avg_nutrient, trend_weight, workouts_count, habit_streak e out_of_scope. Parâmetros, datas e IDs do catálogo são validados; nunca se executa SQL do modelo. A segunda chamada recebe somente o resultado numérico. Schemas fechados e checagem de números sem referência rejeitam respostas inválidas; linguagem natural ainda pode interpretar dados incorretamente. A interface mostra origem, período e quantidade. Aplicar abre formulário e só escreve depois de confirmação explícita.
+
+Consentimento geral versão 2 e idade adulta verificados no servidor. Quota compartilhada de coach/chat usa o mesmo controle atômico da fase 1. Plano pago obrigatório. O chat não persiste por padrão.

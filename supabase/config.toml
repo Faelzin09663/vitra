@@ -9,3 +9,6 @@ verify_jwt = false
 
 [functions.analyze-body-photos]
 verify_jwt = false
+
+[functions.coach]
+verify_jwt = false

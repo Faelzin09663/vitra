@@ -9,7 +9,7 @@ import type { AIConsent } from '../supabase/functions/_shared/ai-consent';
 const invoke = vi.hoisted(() => vi.fn());
 vi.mock('../src/lib/supabase', () => ({ supabase: { functions: { invoke } } }));
 const estimate = { name: 'Arroz e frango', calories: 450, protein: 35, carbs: 48, fat: 12, confidence: 'medium', notes: 'Porções estimadas.', foods: [{ name: 'Arroz', portion: '150 g' }], needsClarification: false };
-const consent = { version: 1, grantedAt: '2026-10-04T12:00:00Z' };
+const consent = { version: 2, grantedAt: '2026-10-04T12:00:00Z' };
 const view = (value: AIConsent | null = consent, age: number | null = 30) => {
   const onSave = vi.fn(), beforeAnalyze = vi.fn().mockResolvedValue(undefined), changed = vi.fn();
   function Wrapper() {
@@ -29,10 +29,10 @@ describe('Consentimento e revisão de refeições', () => {
     const { changed } = view(null);
     const authorize = screen.getByRole('button', { name: 'Autorizar IA' }) as HTMLButtonElement;
     expect(authorize.disabled).toBe(true); expect(invoke).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByLabelText('Autorizo o envio da refeição ao Google para análise.'));
+    fireEvent.click(screen.getByLabelText('Autorizo o envio do resumo e da refeição ao Google para análise.'));
     fireEvent.click(authorize);
     await screen.findByLabelText('Descreva os alimentos e as porções');
-    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ version: 1, grantedAt: expect.any(String) }));
+    expect(changed).toHaveBeenCalledWith(expect.objectContaining({ version: 2, grantedAt: expect.any(String) }));
     expect(invoke).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', { name: 'Desativar IA' }));
     await screen.findByRole('button', { name: 'Autorizar IA' });

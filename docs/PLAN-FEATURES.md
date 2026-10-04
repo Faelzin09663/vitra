@@ -73,3 +73,5 @@ Substituições da sessão, registro de desconforto, modo academia, medidas e fo
 Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por agenda, calendario de 90 dias e agua/treino derivados. Execute `202610040006_checkins_habits.sql`. Sem notificacao push; lembrete dentro do app.
 
 Fase 7: funções puras em `src/lib/analytics/`, reutilizáveis no servidor; janelas mínimas, aquecimentos/deloads e dispensa testados. Sem migração nova.
+
+Fase 8: coach/contexto agregado pelo servidor, chat em duas etapas com consultas fechadas, DTO sem identificadores, consentimento v2, quotas compartilhadas, edição de propostas e testes com mocks. Deno valida as três funções de IA. Sem migração adicional; necessário deploy.
