@@ -33,3 +33,5 @@ Para secrets por CLI, use arquivo local ignorado das funções, preenchido com e
 
 As fases seguintes ainda não criaram bucket de fotos nem funções de corpo/coach. Não execute instruções de deploy para recursos que não existem.
 Fase 2: execute tambem `202610040003_exercise_library.sql` para salvar exercicios personalizados. A biblioteca e os programas nao dependem dessa tabela.
+
+Fase 3: substituicoes preservam o modelo e registram a origem no historico. Relatos de desconforto usam `202610040004_session_tools.sql`; aviso conservador com 3 relatos da mesma regiao em 14 dias.
