@@ -1,3 +1,4 @@
+vi.mock("../src/lib/api", () => ({ invokeAPI: invoke }));
 import React from 'react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';

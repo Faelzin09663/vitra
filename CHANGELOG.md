@@ -1,5 +1,15 @@
 # Alterações
 
+## 2026-10-04 — Configuração centralizada em .env
+
+- Backend Vitra com Deno, API `/api` e build servido pelo mesmo processo em produção.
+- Todas as credenciais no `.env` da raiz; somente conexão pública e URL da API usam `VITE_`.
+- Frontend deixa de chamar Supabase Edge Functions; refeições, fotos, coach, passos e exclusão usam a API Vitra com a autenticação existente.
+- Conexão existente preservada; configurações anteriores guardadas como backups ignorados. Campos privados sem credencial permanecem vazios.
+- Handlers compartilhados preservam quotas, consentimentos, isolamento e validação; adaptação não muda o esquema SQL.
+- `npm run dev` inicia os dois processos; `npm start` entrega app/API. Guias de ativação atualizados sem depender de Supabase Secrets.
+- Validação: 142 testes, build, checagem Deno e teste HTTP real de proxy/CORS/arquivos privados, sem chamadas de IA ou modificações no banco remoto.
+
 ## 2026-10-04 — Fases 0–9
 
 - Reconhecimento documentado e Gemini REST com modelos por função, consentimento, quotas e respostas validadas.
@@ -13,4 +23,4 @@
 - Telas por demanda, skeletons, foco/diálogos, backup v3 e exclusão autenticada de conta.
 - Novas migrações incrementais; logs/datas legados preservados sem migração geral.
 
-A ativação remota de tabelas, Storage, secrets e funções depende de seguir docs/MANUAL-STEPS.md. Testes locais usam mocks de IA e PostgreSQL isolado.
+A ativação remota de tabelas e Storage e a configuração do backend dependem de seguir docs/MANUAL-STEPS.md. Testes locais usam mocks de IA e PostgreSQL isolado.

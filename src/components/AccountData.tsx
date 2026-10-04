@@ -1,5 +1,5 @@
+import { invokeAPI } from "../lib/api";
 import React from "react";
-import { supabase } from "../lib/supabase";
 import { ModalDialog } from "./ModalDialog";
 export function AccountData({
   onExport,
@@ -21,13 +21,13 @@ export function AccountData({
     setError("");
     try {
       await beforeDelete();
-      const r = await supabase!.functions.invoke("delete-account", {
+      const r = await invokeAPI("delete-account", {
         body: { confirmation, password },
       });
       setPassword("");
       if (r.error || r.data?.deleted !== true)
         throw new Error(
-          "Não foi possível excluir. Verifique sua senha, conexão e publicação da função.",
+          r.error?.message || "Não foi possível excluir. Confira sua senha e tente novamente.",
         );
       await onDeleted();
     } catch (err) {

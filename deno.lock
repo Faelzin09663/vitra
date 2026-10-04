@@ -896,6 +896,7 @@
         "npm:@types/react-dom@^19.3.0",
         "npm:@types/react@^19.3.0",
         "npm:@vitejs/plugin-react@^6.1.1",
+        "npm:deno@2.9.6",
         "npm:jsdom@^29.1.1",
         "npm:lucide-react@^1.51.0",
         "npm:react-dom@^19.3.0",

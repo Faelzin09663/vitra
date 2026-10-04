@@ -8,7 +8,7 @@ O navegador recebe apenas URL/chave pública Supabase. RLS protege os registros 
 
 ## Análise de refeições
 
-Fluxo: navegador reencoda pixels em JPEG a 1024 px/qualidade 0,8 → usuário autoriza e salva preferências → clique explícito em Analisar → Edge Function valida JWT com auth.getUser → lê consentimento/idade do titular em user_data → valida tamanho/formato → consome quota → provedor Gemini → JSON validado → revisão editável → confirmação salva refeição.
+Fluxo: navegador reencoda pixels em JPEG a 1024 px/qualidade 0,8 → usuário autoriza e salva preferências → clique explícito em Analisar → backend Vitra valida JWT com auth.getUser → lê consentimento/idade do titular em user_data → valida tamanho/formato → consome quota → provedor Gemini → JSON validado → revisão editável → confirmação salva refeição.
 
 A foto permanece em memória, é descartada ao fechar e não é armazenada pelo Vitra. Descrição/foto saem do Supabase e chegam ao Google; não enviamos nome, e-mail, UUID, senha ou JWT. O usuário deve evitar dados pessoais na própria foto/descrição. A aplicação envia store=false e não usa Files API/cache explícito. Isso não elimina retenção de segurança do Google.
 
@@ -34,7 +34,7 @@ ALLOWED_ORIGINS lista origens exatas separadas por vírgula, incluindo http://lo
 
 `consume_ai_request` e `ai_quota_settings` são acessíveis apenas por service_role; clientes não leem/zeram quotas. Limites padrão: meal 20 por hora UTC; body_photo 5 por dia UTC; coach/chat juntos 30 por hora UTC. Tipos desconhecidos são recusados. Limites podem ser alterados administrativamente em ai_quota_settings. O wrapper consume_meal_analysis compartilha a quota nova e mantém clientes já publicados funcionando. Contadores antigos são copiados com greatest para não ganhar nova franquia no deploy. O upsert é atômico.
 
-O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. Funcoes de corpo e coach existem no codigo e precisam de deploy administrativo.
+O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. As rotas de corpo e coach exigem o backend Vitra ativo e configurado.
 
 ## Saúde por Atalhos
 
@@ -42,14 +42,15 @@ health-steps não oferece CORS; aceita token dedicado de 256 bits, armazena só 
 
 Revogue em Conectar Saúde pelo Atalhos → Revogar. Gerar token novo substitui o anterior; atualize o Atalho e remova o antigo. Não compartilhe tokens. A quota por hash não bloqueia ataque distribuído com hashes aleatórios; proteções por IP/gateway podem ser necessárias para uso público.
 
-## Secrets e rotação
+## Ambiente e rotação
 
-- Raiz: .env.local tem apenas variáveis públicas VITE_SUPABASE_*.
-- Funções: .env.example lista nomes e padrões sem chave real; configure GEMINI_API_KEY em Supabase → Edge Functions → Secrets. Arquivos preenchidos .env* são ignorados pelo Git.
-- SUPABASE_SERVICE_ROLE_KEY vem do ambiente Supabase. SUPABASE_ACCESS_TOKEN da CLI fica fora do projeto.
-- Revogue a chave do provedor anterior no respectivo painel, pois foi compartilhada fora do repositório; remova secrets antigos do Supabase. Não os exiba no terminal.
+- Todas as credenciais ficam no .env da raiz, ignorado pelo Git. `.env.example` lista somente nomes, campos vazios e padrões públicos.
+- Somente VITE_SUPABASE_* e VITE_API_URL chegam ao navegador. GEMINI_API_KEY e SUPABASE_SECRET_KEY são lidas exclusivamente pelo servidor Vitra. O nome legado SUPABASE_SERVICE_ROLE_KEY também é aceito.
+- Não são necessários Supabase Secrets ou deploy de Edge Functions. Os adaptadores antigos compartilham os handlers, mas o app chama /api.
+- O servidor entrega apenas dist/, bloqueia arquivos ocultos e nunca encaminha erros internos. Não registra valores de ambiente, corpo, tokens ou senhas. Credenciais ausentes produzem mensagem fixa de configuração pendente.
+- Configurações .env.local anteriores foram guardadas como backups ignorados; somente o .env da raiz é usado pela API.
 
-Para rotacionar Gemini: crie uma nova chave no projeto com faturamento ativo, atualize o Secret no Supabase, faça uma análise com conta de teste e revogue a chave anterior no Google AI Studio. Em suspeita de abuso, revogue imediatamente. Não envie nenhuma chave no chat.
+Para rotacionar Gemini: crie nova chave no projeto com faturamento ativo, atualize GEMINI_API_KEY no .env, reinicie o backend, verifique com conta de teste e revogue a anterior no Google AI Studio. Para Supabase, prefira uma Secret key dedicada ao backend e atualize SUPABASE_SECRET_KEY. Nunca envie essas chaves no chat.
 
 ## Git e validação
 
@@ -66,7 +67,7 @@ A migração 202610040005 cria `progress-photos` privado, com limite de 1,5 MB e
 
 `analyze-body-photos` recebe somente IDs. O JWT do titular rege a leitura de registros e download, sem bypass administrativo. O servidor exige consentimento específico e idade adulta, limita 5 análises por dia, envia somente as fotos escolhidas e notas ao Google e valida a resposta. Plano pago obrigatório; a aplicação não persiste imagens no provedor, mas isso não elimina retenção limitada do próprio Google para segurança. Comparações podem falhar e não são avaliações clínicas. Sinais de sofrimento nas notas interrompem a comparação detalhada.
 
-Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. O Perfil inclui exclusao de conta com confirmacao textual e senha atual; o servidor remove arquivos proprios antes de excluir o usuario e suas tabelas por cascata.
+Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. O Perfil inclui exclusao de conta com confirmacao textual e senha atual; o servidor remove arquivos proprios antes de excluir o usuário e suas tabelas por cascata.
 
 ## Coach e consultas fechadas
 

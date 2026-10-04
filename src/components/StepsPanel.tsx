@@ -2,11 +2,12 @@ import React from 'react';
 import { Footprints, Plus, RefreshCw, Smartphone, Copy, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { localDateKey } from '../lib/store';
+import { apiURL } from '../lib/api';
 type StepDay = { recorded_on: string; steps: number; source: string };
 export function StepsPanel({ userId }: { userId: string }) {
   const [rows, setRows] = React.useState<StepDay[]>([]), [error, setError] = React.useState(''), [loading, setLoading] = React.useState(true), [attempt, setAttempt] = React.useState(0), [open, setOpen] = React.useState(false), [manual, setManual] = React.useState(false), [busy, setBusy] = React.useState(false), [token, setToken] = React.useState(''), [copyMessage, setCopyMessage] = React.useState('');
   const today = localDateKey();
-  const endpoint = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-steps`;
+  const endpoint = apiURL('health-steps');
   React.useEffect(() => {
     let active = true;
     if (!supabase) return;

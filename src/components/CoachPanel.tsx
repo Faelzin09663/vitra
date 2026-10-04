@@ -1,5 +1,5 @@
+import { invokeAPI } from "../lib/api";
 import React from "react";
-import { supabase } from "../lib/supabase";
 import { exercises } from "../data/exercises";
 import { hasAIConsent } from "../../supabase/functions/_shared/ai-consent";
 import {
@@ -59,12 +59,12 @@ export function CoachPanel({
     const version = ++generation.current;
     try {
       await beforeAsk();
-      const response = await supabase!.functions.invoke("coach", {
+      const response = await invokeAPI("coach", {
         body: action === "chat" ? { action, question: q } : { action },
       });
       if (response.error)
         throw new Error(
-          "Não foi possível consultar. Confira conexão, consentimento, limite por hora e publicação da função.",
+          response.error.message,
         );
       if (version !== generation.current) return;
       const source = response.data.source;

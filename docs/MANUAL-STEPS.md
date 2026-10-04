@@ -1,6 +1,6 @@
 # Ativar as fases 1–9 no seu projeto
 
-Projeto: `fukfidkpmfbdapemsbpr`. Estes passos exigem acesso ao painel/CLI do Supabase e à conta Google. Nenhum secret precisa ser enviado no chat. Migrações e deploy remoto não foram executados pelo desenvolvimento local.
+Projeto: `fukfidkpmfbdapemsbpr`. Estes passos exigem acesso ao painel/CLI do Supabase e à conta Google. Nenhum secret precisa ser enviado no chat. Migrações e publicação remota não foram executadas pelo desenvolvimento local. Chaves ficam no .env da raiz; Supabase Secrets não são necessários.
 
 ## 1. Google: plano pago e chave
 
@@ -33,45 +33,40 @@ A migração de fotos cria o bucket **progress-photos**, privado, máximo 1.500.
 
 No Cron confirme job `vitra-cleanup-integration-limits`, agenda `17 * * * *`, comando `select public.cleanup_integration_limits();`, e uma execução bem-sucedida. Isso remove quotas antigas, não dados de saúde.
 
-## 5. Configurar secrets
+## 5. Configurar o .env
 
-Opção mais simples: **Supabase → Edge Functions → Secrets → Add new secret**:
+Abra `.env` na raiz do Vitra. Todas as chaves ficam nele, sem cadastrar Secrets no Supabase. Consulte [ENVIRONMENT.md](ENVIRONMENT.md) para detalhes.
 
+- VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY: conexão pública existente, preservada neste checkout.
+- SUPABASE_SECRET_KEY: copie/crie a Secret key em Supabase > Settings > API Keys > Publishable and secret API keys e cole somente no .env. Alternativa legada: SUPABASE_SERVICE_ROLE_KEY.
 - GEMINI_API_KEY: chave Google criada no passo 1.
-- GEMINI_MODEL: gemini-3.1-flash-lite.
-- ALLOWED_ORIGINS: origens reais separadas por vírgula, por exemplo http://localhost:5173,https://SEU-DOMINIO; sem barra final e sem asterisco.
-- GEMINI_MODEL_MEAL, GEMINI_MODEL_BODY, GEMINI_MODEL_COACH: opcionais; usam o modelo geral se vazios.
-- GEMINI_ENDPOINT: normalmente não precisa configurar.
+- GEMINI_MODEL: gemini-3.1-flash-lite; overrides MEAL/BODY/COACH são opcionais.
+- ALLOWED_ORIGINS: origens exatas do frontend, incluindo o domínio HTTPS publicado, sem barra final.
+- API_PORT: 8787 por padrão. VITE_API_URL: /api para app e backend juntos.
 
-O modelo de fotos pode ser trocado por um mais capaz usando GEMINI_MODEL_BODY. Confira suporte do modelo na sua conta. O modelo padrão confirmado tem encerramento anunciado em 07/05/2027; revise [descontinuações oficiais](https://ai.google.dev/gemini-api/docs/deprecations) antes dessa data.
+Não adicione prefixo VITE_ a uma chave privada. Não envie chaves no chat. Esses campos privados estão vazios até você preenchê-los. O modelo padrão tem encerramento anunciado em 07/05/2027; revise [descontinuações oficiais](https://ai.google.dev/gemini-api/docs/deprecations).
 
-Para CLI, copie `supabase/functions/.env.example` para `supabase/functions/.env.local`, preencha num editor e mantenha ignorado pelo Git. Não use arquivo de ambiente do frontend para secrets:
+## 6. Executar o backend e o app
 
-```sh
-npx supabase login
-npx supabase secrets set --env-file supabase/functions/.env.local --project-ref fukfidkpmfbdapemsbpr
-```
-
-SUPABASE_URL, SUPABASE_ANON_KEY e SUPABASE_SERVICE_ROLE_KEY são fornecidos automaticamente às funções hospedadas. Nunca leve service role ao frontend.
-
-## 6. Publicar funções
-
-No terminal da pasta Vitra:
+Na pasta Vitra:
 
 ```sh
-npx supabase login
-npx supabase functions deploy analyze-meal --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
-npx supabase functions deploy analyze-body-photos --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
-npx supabase functions deploy coach --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
-npx supabase functions deploy health-steps --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
-npx supabase functions deploy delete-account --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
+npm ci
+npm run dev
 ```
 
-As três funções de IA e delete-account validam JWT internamente com auth.getUser. Health usa token restrito e revogável. Não troque essa validação por confiança no user_id enviado pelo cliente.
+Isso inicia Vite em 5173 (ou próxima porta livre) e API em 8787. Encerre com Ctrl+C e reinicie depois de editar o .env. Para produção:
+
+```sh
+npm run build
+npm start
+```
+
+O servidor entrega `dist/` e `/api` pela mesma porta; publique por HTTPS num host que mantenha o processo ativo e instale as dependências incluindo o runtime Deno. Não é necessário publicar Edge Functions. Os handlers continuam verificando JWT/token, consentimentos e quotas no banco.
 
 ## 7. Publicar e testar o app
 
-Publique o frontend em HTTPS com apenas as variáveis públicas Supabase. Configure Site URL/Redirect URLs no Auth. No Perfil, salve seus dados e autorize o novo termo de IA versão 2. Para fotos, há um consentimento separado versão 1, em Evolução → Fotos.
+Publique app e backend Vitra em HTTPS, com o .env privado no servidor. Em hospedagem separada, configure VITE_API_URL antes do build e ALLOWED_ORIGINS no backend. Configure Site URL/Redirect URLs no Auth. No Perfil, salve seus dados e autorize o novo termo de IA versão 2. Para fotos, há um consentimento separado versão 1, em Evolução → Fotos.
 
 Verifique:
 

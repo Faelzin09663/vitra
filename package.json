@@ -4,10 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "vite --host 0.0.0.0",
+    "dev": "node scripts/dev.mjs",
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview --host 0.0.0.0",
-    "test": "vitest run"
+    "test": "vitest run",
+    "dev:web": "vite --host 0.0.0.0",
+    "api": "deno run --env-file=.env --allow-env --allow-net --allow-read=dist server/main.ts",
+    "start": "npm run api",
+    "check:server": "deno check server/main.ts supabase/functions/analyze-meal/index.ts supabase/functions/analyze-body-photos/index.ts supabase/functions/coach/index.ts supabase/functions/health-steps/index.ts supabase/functions/delete-account/index.ts"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +19,7 @@
   "type": "module",
   "dependencies": {
     "@supabase/supabase-js": "^2.117.2",
+    "deno": "2.9.6",
     "lucide-react": "^1.51.0",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"

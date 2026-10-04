@@ -60,7 +60,7 @@ Passos administrativos em [MANUAL-STEPS.md](MANUAL-STEPS.md). Testes não fazem 
 Validação final: 81 testes Vitest passaram, build passou e checagem Deno das duas funções passou. A verificação isolada de PostgreSQL passou em 50 checagens. Busca na árvore atual não encontrou referências ao provedor/modelo anterior; histórico do Git foi preservado. Nenhum secret de IA foi encontrado no bundle.
 
 ## Fase 2 concluida
-Biblioteca original versionada com 134 exercicios, sete programas, filtros e associacao do legado sem reescrever logs. custom_exercises exige a migracao 202610040003. O pedido posterior autorizou continuar ate a Fase 9.
+Biblioteca original versionada com 134 exercicios, sete programas, filtros e associacao do legado sem reescrever logs. custom_exercises exige a migracao 202610040003. O pedido posterior autorizou continuar até a Fase 9.
 
 Fase 3: substituicoes preservam o modelo e registram a origem no historico. Relatos de desconforto usam `202610040004_session_tools.sql`; aviso conservador com 3 relatos da mesma regiao em 14 dias.
 
@@ -85,3 +85,8 @@ Export v3 paginado inclui painel, arquivo diário, passos, exercícios personali
 Histórico/datas legados preservados; nenhuma migração antiga alterada. Testes de serviços externos são simulados e SQL roda em PostgreSQL isolado. Supabase remoto, Google faturado, Storage API real e aparelho iOS não foram verificados. Guia final em MANUAL-STEPS.md, sem esconder essas dependências administrativas.
 
 Validação do fechamento: `npm run build` passou, 123 testes Vitest passaram em 20 arquivos; checagem Deno das cinco funções passou. PostgreSQL isolado: 50 checagens de quota e 73 de recursos/RLS/Storage/cascata, total 123. Contraste de texto branco nos botões primários: 5,10:1 nos dois temas, acima de AA para texto pequeno. Migrações anteriores permanecem sem alterações. Busca sem referências ao antigo provedor e sem padrões de segredo nos arquivos/bundle; arquivos reais de ambiente não são versionados.
+
+
+## Ajuste posterior: ambiente local centralizado
+
+A pedido do usuário, a configuração atual usa .env na raiz e backend Vitra proprio com Deno. O app chama /api, sem depender de Supabase Secrets ou deploy de Edge Functions. Supabase permanece como banco/Auth/Storage. Veja docs/ENVIRONMENT.md e o guia manual atualizado. As fases acima registram o desenvolvimento anterior.

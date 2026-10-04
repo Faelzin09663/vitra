@@ -1,3 +1,4 @@
+import { invokeAPI } from "../lib/api";
 import React from 'react';
 import { Camera, Sparkles, X, Check, Utensils } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -33,10 +34,10 @@ export function MealAnalyzer({ onSave, consent, age, onConsentChange, beforeAnal
     try {
       await beforeAnalyze(); // Consent/preferences must already exist on the server.
       if (id !== sequence.current) return;
-      const { data, error } = await supabase.functions.invoke('analyze-meal', { body: { description, image } });
+      const { data, error } = await invokeAPI('analyze-meal', { body: { description, image } });
       if (id !== sequence.current) return;
       if (error) {
-        let message = 'Não foi possível analisar. Confira a conexão e a ativação da IA no Supabase.';
+        let message = 'Não foi possível analisar. Confira a conexão e a configuração do servidor Vitra.';
         if ('context' in error && error.context instanceof Response) {
           const body = await error.context.json().catch(() => null);
           if (typeof body?.error === 'string') message = body.error;

@@ -1,3 +1,4 @@
+import { invokeAPI } from "../lib/api";
 import React from "react";
 import { supabase } from "../lib/supabase";
 import { useRecords } from "../lib/useRecords";
@@ -197,12 +198,12 @@ export function BodyProgress({
     setResult(null);
     await run(async () => {
       await beforeAnalyze();
-      const response = await supabase!.functions.invoke("analyze-body-photos", {
+      const response = await invokeAPI("analyze-body-photos", {
         body: { photoIds: ids },
       });
       if (response.error)
         throw new Error(
-          "Análise indisponível. Verifique consentimento, limite diário e publicação da função.",
+          response.error.message,
         );
       const analysis = parseBodyAnalysis(
         JSON.stringify(response.data?.analysis),
