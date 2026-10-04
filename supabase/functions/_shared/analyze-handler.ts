@@ -1,7 +1,6 @@
+import { corsHeaders, parseAllowedOrigins, validPreflight } from './cors.ts';
 import { parseMealAnalysis } from './meal-schema.ts';
-export type AnalysisDeps = { authenticate: (token: string) => Promise<string | null>; allowRequest: (userId: string) => Promise<boolean>; apiKey?: string; model?: string; endpoint?: string; fetcher?: typeof fetch };
-const headers = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, apikey, content-type, x-client-info', 'Access-Control-Allow-Methods': 'POST, OPTIONS', 'Content-Type': 'application/json' };
-const reply = (status: number, body: object) => new Response(JSON.stringify(body), { status, headers });
+export type AnalysisDeps = { authenticate: (token: string) => Promise<string | null>; allowRequest: (userId: string) => Promise<boolean>; apiKey?: string; model?: string; endpoint?: string; fetcher?: typeof fetch; allowedOrigins?: string };
 async function readBody(req: Request) {
   const reader = req.body?.getReader(); if (!reader) throw new Error('empty');
   let length = 0; const chunks: Uint8Array[] = [];
@@ -10,8 +9,16 @@ async function readBody(req: Request) {
   return JSON.parse(new TextDecoder().decode(bytes));
 }
 export function createAnalysisHandler(deps: AnalysisDeps) {
+  const allowedOrigins = parseAllowedOrigins(deps.allowedOrigins);
   return async (req: Request) => {
-    if (req.method === 'OPTIONS') return new Response('ok', { headers });
+    const origin = req.headers.get('Origin');
+    const headers = corsHeaders(origin, allowedOrigins);
+    const reply = (status: number, body: object) => new Response(JSON.stringify(body), { status, headers });
+    if (origin && !allowedOrigins.includes(origin)) return reply(403, { error: 'Origem n?o permitida.' });
+    if (req.method === 'OPTIONS') {
+      if (!origin || !validPreflight(req)) return reply(403, { error: 'Preflight n?o permitido.' });
+      return new Response(null, { status: 204, headers });
+    }
     if (req.method !== 'POST') return reply(405, { error: 'Método não permitido.' });
     try {
       const token = req.headers.get('Authorization')?.match(/^Bearer (.+)$/i)?.[1];

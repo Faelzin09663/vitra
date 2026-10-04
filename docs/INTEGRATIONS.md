@@ -33,7 +33,7 @@ npx supabase functions deploy health-steps --project-ref fukfidkpmfbdapemsbpr --
 
 ### Chave da NVIDIA
 
-A chave fornecida foi configurada em `.env.local` como `NVIDIA_API_KEY` (sem prefixo `VITE_`) e no arquivo de secrets `supabase/functions/.env.local`. Ambos são ignorados pelo Git. O código público não lê essa variável. Para enviar a configuração ao servidor, use o comando de secrets abaixo; adicionar um arquivo local não configura automaticamente uma Edge Function já publicada.
+A chave deve existir somente em `supabase/functions/.env.local` e nos Secrets das Edge Functions. O arquivo da raiz contém apenas configurações públicas do frontend. Configure também `ALLOWED_ORIGINS`, incluindo localhost e a origem HTTPS publicada; veja [Segurança](SECURITY.md) para aplicar a migração de quotas e limpeza automática.
 
 O modelo padrão é [`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`](https://build.nvidia.com/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning), da família aberta Nemotron. O catálogo anuncia um endpoint gratuito de **prototipagem**, sujeito aos limites e termos da sua conta. Isso não garante hospedagem de produção gratuita ou ilimitada; executar os pesos por conta própria também exige infraestrutura.
 

@@ -42,13 +42,13 @@ describe('Análise NVIDIA', () => {
 describe('Passos pelo Atalhos', () => {
   it('bloqueia envio sem um token de sincronização', async () => {
     const save = vi.fn();
-    const handler = createHealthHandler({ findOwner: async () => 'owner-a', save });
+    const handler = createHealthHandler({ allowRequest: async () => true, findOwner: async () => 'owner-a', save });
     expect((await handler(new Request('https://example.com', { method: 'POST', body: '{}' }))).status).toBe(401);
     expect(save).not.toHaveBeenCalled();
   });
   it('deriva a conta do token e não aceita um user_id enviado no JSON', async () => {
     const save = vi.fn(), findOwner = vi.fn().mockResolvedValue('owner-a');
-    const handler = createHealthHandler({ findOwner, save });
+    const handler = createHealthHandler({ allowRequest: async () => true, findOwner, save });
     const date = new Date().toISOString().slice(0, 10);
     const response = await handler(new Request('https://example.com', { method: 'POST', headers: { Authorization: `Bearer vitra_health_${'a'.repeat(64)}` }, body: JSON.stringify({ date, steps: 6000, user_id: 'owner-b' }) }));
     expect(response.status).toBe(200);
@@ -61,7 +61,7 @@ describe('Passos pelo Atalhos', () => {
     expect(validateStepsInput({ date: new Date().toISOString().slice(0, 10), steps: -1 })).toBe(false);
     expect(validateStepsInput({ date: new Date().toISOString().slice(0, 10), steps: 10.5 })).toBe(false);
     const save = vi.fn();
-    const handler = createHealthHandler({ findOwner: async () => null, save });
+    const handler = createHealthHandler({ allowRequest: async () => true, findOwner: async () => null, save });
     const response = await handler(new Request('https://example.com', { method: 'POST', headers: { Authorization: `Bearer vitra_health_${'b'.repeat(64)}` }, body: '{}' }));
     expect(response.status).toBe(401); expect(save).not.toHaveBeenCalled();
   });

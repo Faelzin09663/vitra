@@ -1,3 +1,4 @@
+import { uid } from './uid';
 export type Meal = { name: string; calories: number; protein: number; carbs: number; fat: number; estimated?: boolean; notes?: string; analyzedBy?: string };
 import { emptyProfile, nutritionEstimates, type PersonalProfile } from './nutrition';
 export type Exercise = { name: string; sets: number; reps: string; restSeconds?: number };
@@ -40,15 +41,15 @@ export function normalizeStore(saved: Store, now = new Date()): Store {
 }
 export function addWater(store: Store, amount: number, now = new Date()): Partial<Store> {
   const actual = Math.max(-store.water, amount);
-  return { water: store.water + actual, waterEntries: [...store.waterEntries, { id: crypto.randomUUID(), date: dates(now).day, at: now.toISOString(), amount: actual }] };
+  return { water: store.water + actual, waterEntries: [...store.waterEntries, { id: uid(), date: dates(now).day, at: now.toISOString(), amount: actual }] };
 }
 export function addCardio(store: Store, activity: string, minutes: number, now = new Date(), distanceKm = 0): Partial<Store> {
   if (!Number.isFinite(distanceKm) || distanceKm < 0 || !Number.isFinite(minutes) || minutes < 0) throw new Error('Informe uma distância e duração válidas.');
-  return { cardio: store.cardio + minutes, cardioKm: Math.round((store.cardioKm + distanceKm) * 1000) / 1000, cardioEntries: [...store.cardioEntries, { id: crypto.randomUUID(), date: dates(now).day, at: now.toISOString(), activity, minutes, distanceKm }] };
+  return { cardio: store.cardio + minutes, cardioKm: Math.round((store.cardioKm + distanceKm) * 1000) / 1000, cardioEntries: [...store.cardioEntries, { id: uid(), date: dates(now).day, at: now.toISOString(), activity, minutes, distanceKm }] };
 }
 export function finishWorkout(store: Store, now = new Date()): Partial<Store> {
   const day = dates(now).day;
-  return { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: crypto.randomUUID(), date: day, at: now.toISOString(), name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds: elapsedSeconds(store.activeWorkout, now.getTime()), exercises: structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises), sets: structuredClone(store.sets) }] };
+  return { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: uid(), date: day, at: now.toISOString(), name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds: elapsedSeconds(store.activeWorkout, now.getTime()), exercises: structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises), sets: structuredClone(store.sets) }] };
 }
 export function startWorkout(store: Store, now = new Date()): Partial<Store> {
   const workout = currentWorkout(store);

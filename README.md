@@ -40,3 +40,7 @@ npm test
 ```
 
 Os testes verificam os fluxos de autenticação e persistência com um cliente Supabase simulado, além da preservação dos históricos após a virada do dia e da semana. Para verificar a configuração real, após aplicar as migrações: crie uma conta, confirme o e-mail, registre água e entre em outro navegador; o registro deve ser carregado. Uma segunda conta deve abrir sem os registros da primeira. Teste também recuperação de senha, logout e os registros na tela Evolução. Esses testes reais exigem um projeto Supabase configurado e não são executados automaticamente contra contas reais.
+
+## Segurança
+
+Veja [docs/SECURITY.md](docs/SECURITY.md) para limites, origens permitidas, rotação de chaves e aplicação da migração de segurança da Fase 1.
