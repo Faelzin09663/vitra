@@ -102,3 +102,7 @@ O IMC é calculado como peso/altura². A estimativa de repouso usa [Mifflin–St
 Em Treinos, use Criar treino ou Duplicar. Cada modelo tem nome, foco, dias da semana, exercícios, séries, repetições e descanso. É possível montar, por exemplo, Peito 1 na segunda e Peito 2 na sexta com exercícios diferentes. O painel Hoje prioriza uma sessão agendada para o dia. A sessão em andamento guarda uma cópia do nome e dos exercícios, e finalizar registra o modelo correto no histórico. Excluir um modelo preserva os treinos concluídos.
 
 Esses campos ficam em `user_data`, sob as regras de acesso existentes. Não é necessária uma migração nova para perfil ou modelos de treino. O treino A anterior é convertido automaticamente em um modelo, preservando seus exercícios e os registros já existentes.
+
+## Fotos de progresso
+
+Execute `202610040005_body_progress.sql` e publique `npx supabase functions deploy analyze-body-photos --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt`. A validação JWT ocorre no handler. O bucket é privado e criado pela migração. `GEMINI_MODEL_BODY` sobrescreve `GEMINI_MODEL`; se a análise visual do Flash-Lite for insuficiente, configure um modelo mais capaz pelo secret sem mudar código. Ative faturamento e consentimento específico antes de analisar.

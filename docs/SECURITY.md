@@ -60,3 +60,10 @@ Se descobrir uma exposição: revogue primeiro; em clone dedicado, use git filte
 uid() usa randomUUID quando disponível, ou getRandomValues em HTTP local. Não serve como helper de autenticação; tokens mantêm geração criptográfica separada. Use HTTPS em produção.
 
 Testes usam IA simulada; verificação SQL isolada cobre limites, wrapper, idempotência e permissões sem tocar produção. Cron real e acesso ao modelo/plano precisam de confirmação administrativa. Siga [MANUAL-STEPS.md](MANUAL-STEPS.md).
+## Fotos privadas e análise corporal
+
+A migração 202610040005 cria `progress-photos` privado, com limite de 1,5 MB e políticas por pasta `{user_id}/…`. O navegador redesenha pixels em canvas, até 1600 px, JPEG 0,8: EXIF/GPS do arquivo original não são enviados. Acesso visual usa URLs assinadas por 5 minutos; quem recebe esse link pode usá-lo até expirar, portanto não compartilhe. [Políticas oficiais do Storage](https://supabase.com/docs/guides/storage/security/access-control).
+
+`analyze-body-photos` recebe somente IDs. O JWT do titular rege a leitura de registros e download, sem bypass administrativo. O servidor exige consentimento específico e idade adulta, limita 5 análises por dia, envia somente as fotos escolhidas e notas ao Google e valida a resposta. Plano pago obrigatório; a aplicação não persiste imagens no provedor, mas isso não elimina retenção limitada do próprio Google para segurança. Comparações podem falhar e não são avaliações clínicas. Sinais de sofrimento nas notas interrompem a comparação detalhada.
+
+Excluir foto apaga primeiro o objeto e depois o registro; o trigger apaga análises que mencionem a foto. Se a segunda operação falhar, tente novamente para remover metadados restantes. Exportação inclui metadados/textos; para guardar imagens, baixe-as separadamente antes de excluir. A exclusão integral da conta e de arquivos será disponibilizada no fechamento.

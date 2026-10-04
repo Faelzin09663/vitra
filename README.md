@@ -69,3 +69,5 @@ Biblioteca: 134 exercicios originais, busca e filtros, personalizados no Supabas
 Fase 3: substituicoes preservam o modelo e registram a origem no historico. Relatos de desconforto usam `202610040004_session_tools.sql`; aviso conservador com 3 relatos da mesma regiao em 14 dias.
 
 Fase 4: modo academia com autofill, descanso absoluto, tipos de serie, recordes estimados e desfazer. Wake Lock retoma com visibilitychange; som depende do navegador e autorizacao por toque. Sem migracao adicional.
+
+Evolução: medidas em cm, estimativas por medidas, fotos privadas, comparação por ângulo e análise visual opcional com Gemini, consentimento específico e idade adulta. Veja `docs/ANALYTICS.md` e `docs/MANUAL-STEPS.md`.

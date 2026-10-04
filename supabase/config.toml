@@ -6,3 +6,6 @@ verify_jwt = false
 
 [functions.health-steps]
 verify_jwt = false
+
+[functions.analyze-body-photos]
+verify_jwt = false

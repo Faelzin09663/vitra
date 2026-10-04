@@ -35,3 +35,5 @@ As fases seguintes ainda não criaram bucket de fotos nem funções de corpo/coa
 Fase 2: execute tambem `202610040003_exercise_library.sql` para salvar exercicios personalizados. A biblioteca e os programas nao dependem dessa tabela.
 
 Fase 3: substituicoes preservam o modelo e registram a origem no historico. Relatos de desconforto usam `202610040004_session_tools.sql`; aviso conservador com 3 relatos da mesma regiao em 14 dias.
+
+Fase 5: execute `202610040005_body_progress.sql` depois da 004. Ela cria medidas, fotos, análises e o bucket privado com políticas. Publique `analyze-body-photos --no-verify-jwt`; configure o mesmo `GEMINI_API_KEY`, `ALLOWED_ORIGINS` e, opcionalmente, `GEMINI_MODEL_BODY`. Não há upload público.

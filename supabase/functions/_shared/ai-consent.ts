@@ -1,6 +1,6 @@
 export const AI_CONSENT_VERSION = 1;
 export type AIConsent = { version: number; grantedAt: string };
-export type AIPreferences = { ai_consent: AIConsent | null };
+export type AIPreferences = { ai_consent: AIConsent | null; body_consent?: AIConsent | null; alertDismissedUntil?: string };
 export function hasAIConsent(value: unknown): value is AIConsent {
   if (!value || typeof value !== 'object') return false;
   const consent = value as Partial<AIConsent>;
