@@ -71,3 +71,5 @@ Fase 3: substituicoes preservam o modelo e registram a origem no historico. Rela
 Fase 4: modo academia com autofill, descanso absoluto, tipos de serie, recordes estimados e desfazer. Wake Lock retoma com visibilitychange; som depende do navegador e autorizacao por toque. Sem migracao adicional.
 
 Evolução: medidas em cm, estimativas por medidas, fotos privadas, comparação por ângulo e análise visual opcional com Gemini, consentimento específico e idade adulta. Veja `docs/ANALYTICS.md` e `docs/MANUAL-STEPS.md`.
+
+Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por agenda, calendario de 90 dias e agua/treino derivados. Execute `202610040006_checkins_habits.sql`. Sem notificacao push; lembrete dentro do app.
