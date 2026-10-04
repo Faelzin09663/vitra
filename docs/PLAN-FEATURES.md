@@ -71,3 +71,5 @@ Fase 4: modo academia com autofill, descanso absoluto, tipos de serie, recordes 
 Substituições da sessão, registro de desconforto, modo academia, medidas e fotos privadas implementados. Histórico antigo permanece no JSON. Medidas/fotos/análises usam tabelas novas. Migrações/deploy ainda dependem do acesso administrativo do titular. Build, testes simulados e Deno são validações locais, não prova de publicação.
 
 Fase 6: check-in diario editavel, tendencias de 7 dias, habitos e sequencias por agenda, calendario de 90 dias e agua/treino derivados. Execute `202610040006_checkins_habits.sql`. Sem notificacao push; lembrete dentro do app.
+
+Fase 7: funções puras em `src/lib/analytics/`, reutilizáveis no servidor; janelas mínimas, aquecimentos/deloads e dispensa testados. Sem migração nova.

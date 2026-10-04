@@ -15,3 +15,19 @@ Referência das equações: [Zhang et al., Journal of Thermal Biology, tabela 1]
 Guardas do app: altura 120–230, pescoço 20–65, cintura 40–200, quadril 50–200 cm; cintura maior que pescoço; saída 2–60%. Esses limites são guardas de entrada, não faixas clínicas. Dados incompletos retornam indisponível. Relação cintura/altura usa as mesmas guardas, sem classificação clínica.
 
 Fotos nunca estimam gordura, peso ou medidas. A análise visual não atribui nota ao corpo.
+
+## Força e platô
+
+Epley: carga × (1 + repetições/30), para 2–12 reps; uma repetição usa a própria carga. Não é teste de força máxima. Séries incompletas e aquecimentos não contam; drop/falha contam se concluídas. Volume = soma de carga × reps, sem equivalência entre exercícios/máquinas.
+
+Platô: janela de 42 dias, duas janelas de 21 dias, pelo menos quatro datas de sessão e intervalo de 21 dias entre primeira e última. Exige ao menos duas sessões por janela. O melhor 1RM recente não pode exceder o anterior em mais de 1%. Deloads marcados são excluídos. Sessões do mesmo exercício na mesma data agregam o melhor valor. A indicação é conservadora, não prova de estagnação ou prescrição. O resumo mostra período, referências, quantidade de sessões e tempo desde a referência.
+
+## Equilíbrio
+
+Janela inclusiva de 28 dias. Primário = 1 série, cada secundário diferente = 0,5. Média semanal divide pelo período fixo de quatro semanas, incluindo semanas sem treino. Aquecimento excluído. Séries sem identificação ficam fora, com contagem de ausentes. Alertas exigem dados em duas semanas distintas e séries identificadas.
+
+Faixa inicial 8–25 séries por semana, ajustável na tela, é uma referência configurável do app e não meta clínica. Razões empurrar:puxar e superior:inferior alertam a partir de 2:1, incluindo ausência de puxar/pernas; core e cardio ficam fora da divisão superior/inferior. Alertas podem ser dispensados por 28 dias, salva em preferências. Associar exercícios legados no editor melhora cobertura.
+
+## Check-ins
+
+Média móvel usa valores disponíveis nos sete dias de calendário anteriores, sem inventar dias faltantes. Não apresentar relações/correlações com menos de 21 datas distintas. Mesmo com dados suficientes, associação não demonstra causa.

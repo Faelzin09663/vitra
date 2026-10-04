@@ -1,8 +1,7 @@
 import { normalizeText } from '../data/exercises';
 import type { Exercise,SetRecord,Store,WorkoutLog } from './store';
-export function estimate1RM(load:number,reps:number):number|null { return Number.isFinite(load)&&load>0&&Number.isInteger(reps)&&reps>=1&&reps<=12 ? reps===1?load:load*(1+reps/30) : null; }
-export function effective(set:SetRecord){return set.done&&set.type!=='aquecimento'&&Number.isFinite(set.load)&&set.load>=0&&Number.isInteger(set.reps)&&set.reps>0;}
-export function setVolume(set:SetRecord){return effective(set)?set.load*set.reps:0;}
+import {effective} from './analytics';
+export {estimate1RM,effective,setVolume} from './analytics';
 export function sameExercise(a:Exercise,b:Exercise){return a.exerciseId&&b.exerciseId?a.exerciseId===b.exerciseId:normalizeText(a.name)===normalizeText(b.name);}
 export function historySets(logs:WorkoutLog[],exercise:Exercise,workoutId?:string){return logs.filter(log=>!workoutId||log.workoutId===workoutId||!log.workoutId).flatMap(log=>log.exercises.flatMap((ex,i)=>sameExercise(ex,exercise)?Object.entries(log.sets).filter(([key,set])=>key.startsWith(`${i}-`)&&effective(set)).map(([,set])=>set):[]));}
 export function suggestSet(store:Store,index:number,series:number):SetRecord {
