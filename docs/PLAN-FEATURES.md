@@ -58,3 +58,6 @@ Arquivos da Fase 1:
 Passos administrativos em [MANUAL-STEPS.md](MANUAL-STEPS.md). Testes não fazem chamadas reais; pg_cron é simulado no PostgreSQL/WASM, portanto cron/faturamento/modelo precisam de verificação no Supabase/Google antes de disponibilizar a IA.
 
 Validação final: 81 testes Vitest passaram, build passou e checagem Deno das duas funções passou. A verificação isolada de PostgreSQL passou em 50 checagens. Busca na árvore atual não encontrou referências ao provedor/modelo anterior; histórico do Git foi preservado. Nenhum secret de IA foi encontrado no bundle.
+
+## Fase 2 concluida
+Biblioteca original versionada com 134 exercicios, sete programas, filtros e associacao do legado sem reescrever logs. custom_exercises exige a migracao 202610040003. O pedido posterior autorizou continuar ate a Fase 9.

@@ -2,7 +2,7 @@ import { uid } from './uid';
 import type { AIPreferences } from '../../supabase/functions/_shared/ai-consent';
 export type Meal = { name: string; calories: number; protein: number; carbs: number; fat: number; estimated?: boolean; notes?: string; analyzedBy?: string; foods?: { name: string; portion: string }[]; confidence?: 'low' | 'medium' | 'high' };
 import { emptyProfile, nutritionEstimates, type PersonalProfile } from './nutrition';
-export type Exercise = { name: string; sets: number; reps: string; restSeconds?: number };
+export type Exercise = { name: string; exerciseId?: string; sets: number; reps: string; restSeconds?: number; replacedFrom?: string; replaceReason?: string };
 export type Workout = { id: string; name: string; focus: string; weekdays: number[]; exercises: Exercise[] };
 export type SetRecord = { load: number; reps: number; done: boolean };
 export type WaterEntry = { id: string; date: string; at: string; amount: number };

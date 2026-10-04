@@ -32,3 +32,4 @@ Para secrets por CLI, use arquivo local ignorado das funções, preenchido com e
 10. Antes de **07/05/2027**, altere o modelo padrão para um modelo suportado, por exemplo o substituto oficial gemini-3.5-flash-lite, e valide uma análise. A data anunciada está em [descontinuações](https://ai.google.dev/gemini-api/docs/deprecations).
 
 As fases seguintes ainda não criaram bucket de fotos nem funções de corpo/coach. Não execute instruções de deploy para recursos que não existem.
+Fase 2: execute tambem `202610040003_exercise_library.sql` para salvar exercicios personalizados. A biblioteca e os programas nao dependem dessa tabela.

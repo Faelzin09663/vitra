@@ -64,3 +64,4 @@ Essa verificação testa quotas, wrapper, permissões, limpeza e idempotência; 
 `tests/`: testes locais; `docs/`: plano, integrações, segurança e publicação.
 
 O build estático fica em `dist/`; publique em HTTPS com as duas variáveis públicas de ambiente. As funções/secrets/migrações são publicados separadamente no Supabase. O webapp instalado ainda não oferece Live Activities/HealthKit direto nem fila offline durável.
+Biblioteca: 134 exercicios originais, busca e filtros, personalizados no Supabase e sete programas importaveis sem sobrescrever treinos.
