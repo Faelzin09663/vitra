@@ -1,4 +1,4 @@
-# Timer, NVIDIA e Apple Saúde
+# Timer, Gemini e Apple Saúde
 
 ## Recursos do webapp
 
@@ -31,21 +31,36 @@ npx supabase functions deploy health-steps --project-ref fukfidkpmfbdapemsbpr --
 
 `verify_jwt = false` permite que a validação seja feita dentro da função: `analyze-meal` verifica o JWT do usuário com `auth.getUser`; `health-steps` aceita somente o token limitado de sincronização. Nenhuma função permite acesso anônimo aos dados. As variáveis `SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` são fornecidas pelo ambiente das Edge Functions e nunca vão para o frontend.
 
-### Chave da NVIDIA
+### Gemini: ativação e modelos
 
-A chave deve existir somente em `supabase/functions/.env.local` e nos Secrets das Edge Functions. O arquivo da raiz contém apenas configurações públicas do frontend. Configure também `ALLOWED_ORIGINS`, incluindo localhost e a origem HTTPS publicada; veja [Segurança](SECURITY.md) para aplicar a migração de quotas e limpeza automática.
+A análise usa a API REST do Google Gemini, com chave somente no secret `GEMINI_API_KEY` das Edge Functions. Crie a chave no [Google AI Studio](https://aistudio.google.com/apikey) e ative o faturamento no projeto Google Cloud. Não coloque a chave no frontend nem em `VITE_*`. Siga [MANUAL-STEPS.md](MANUAL-STEPS.md) para a migração `202610040002_ai_provider.sql`, configuração e deploy de `analyze-meal`.
 
-O modelo padrão é [`nvidia/nemotron-3-nano-omni-30b-a3b-reasoning`](https://build.nvidia.com/nvidia/nemotron-3-nano-omni-30b-a3b-reasoning), da família aberta Nemotron. O catálogo anuncia um endpoint gratuito de **prototipagem**, sujeito aos limites e termos da sua conta. Isso não garante hospedagem de produção gratuita ou ilimitada; executar os pesos por conta própria também exige infraestrutura.
+O padrão é `gemini-3.1-flash-lite`, estável, de menor custo, com imagens e JSON estruturado conforme a [documentação do modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). O encerramento anunciado é 07/05/2027; planeje trocar antes. `GEMINI_MODEL_MEAL` tem prioridade sobre `GEMINI_MODEL`. `GEMINI_MODEL_BODY` e `GEMINI_MODEL_COACH` preparam futuras funções e seguem o mesmo fallback. Se a qualidade for insuficiente, configure um modelo mais capaz compatível com imagens/schema sem mudar o código. A disponibilidade na sua conta precisa ser validada no deploy.
 
-Gere a chave no catálogo NVIDIA e configure **NVIDIA_API_KEY** em **Supabase → Edge Functions → Secrets**. Não coloque essa chave em variáveis `VITE_*` nem no código do navegador. Não precisa enviá-la no chat.
+`GEMINI_ENDPOINT` é uma base HTTPS administrativa, por padrão `https://generativelanguage.googleapis.com/v1beta`, sem query/credenciais. A chave vai no cabeçalho `x-goog-api-key`, nunca na URL. Usuários não podem escolher URLs. Timeout padrão de 60 s; bloqueios de segurança, quota do provedor e falhas têm mensagens em português. Não há SDK novo ou parâmetros de amostragem.
 
-Alternativa com CLI: copie `supabase/functions/.env.example` para `supabase/functions/.env.local`, preencha a chave e execute:
+A foto é reencodada em canvas para JPEG (qualidade 0,8, maior lado até 1024 px), sem copiar EXIF/GPS; apenas pixels seguem para a função. O limite de saída é cerca de 1 MB. JPEG, PNG e WebP são aceitos como origem; no iPhone configure captura compatível ou converta HEIC antes. A IA pede esclarecimentos quando não identifica alimentos/porções; isso não pode ser salvo como refeição.
+
+### Consentimento e revisão
+
+Perfil → Você escolhe usar IA, ou a primeira análise, explica o envio ao Google. A autorização salva versão e timestamp em `preferences.ai_consent`; o servidor a lê da conta autenticada e não aceita alegações no JSON. Conta antiga começa sem autorização. Por exigência dos termos do provedor, a IA é destinada a adultos: salve idade de 18 anos ou mais no Perfil. A análise aguarda o salvamento das preferências; sem conexão não envia.
+
+Depois de analisar, todos os dados úteis da estimativa são editáveis: nome, calorias, macros, notas, confiança, alimentos e porções. Só Confirmar e salvar grava. Desativar IA na análise ou Perfil impede novas análises após sincronizar; não remove refeições confirmadas e não desfaz uma transmissão já iniciada. Registros manuais continuam funcionando.
+
+### Privacidade e plano do Gemini
+
+**Para o Vitra, use exclusivamente o plano pago, com faturamento ativo no projeto Google Cloud.** No plano gratuito, o Google pode usar entradas/saídas para melhorar produtos e envolver revisão humana; não envie dados de saúde/fotos. No plano pago, esse conteúdo não é usado para melhorar produtos, mas existe retenção limitada para segurança/obrigações legais. Serviços gratuitos não devem atender usuários no EEE, Reino Unido e Suíça. Confira os [termos do Gemini](https://ai.google.dev/gemini-api/terms); não há promessa de retenção zero.
+
+Revogue a chave do provedor anterior no painel dele e remova seus secrets antigos do Supabase. A nova chave não deve ser compartilhada no chat. A raiz `.env.example` mantém só URL e chave pública do Supabase.
+
+Se preferir CLI, preencha com editor o arquivo ignorado das funções e use:
 
 ```sh
 npx supabase secrets set --env-file supabase/functions/.env.local --project-ref fukfidkpmfbdapemsbpr
+npx supabase functions deploy analyze-meal --project-ref fukfidkpmfbdapemsbpr --no-verify-jwt
 ```
 
-Para hospedar o modelo NVIDIA por conta própria, defina `NVIDIA_ENDPOINT` para um endpoint confiável compatível com chat completions, `NVIDIA_MODEL` para o nome servido e `NVIDIA_API_KEY` para a autenticação desse servidor. O endpoint é configuração administrativa; o usuário não pode fornecer URLs arbitrárias na requisição.
+A nova quota é genérica: meal 20/hora, body_photo 5/dia, coach/chat juntos 30/hora, buckets UTC e limites administrativos em `ai_quota_settings`. O wrapper antigo permanece compatível, contadores existentes são preservados e o cron limpa buckets de mais de sete dias. Corpo e coach ainda são fases futuras.
 
 ## Passos do Saúde por Atalhos
 

@@ -1,5 +1,6 @@
 import { uid } from './uid';
-export type Meal = { name: string; calories: number; protein: number; carbs: number; fat: number; estimated?: boolean; notes?: string; analyzedBy?: string };
+import type { AIPreferences } from '../../supabase/functions/_shared/ai-consent';
+export type Meal = { name: string; calories: number; protein: number; carbs: number; fat: number; estimated?: boolean; notes?: string; analyzedBy?: string; foods?: { name: string; portion: string }[]; confidence?: 'low' | 'medium' | 'high' };
 import { emptyProfile, nutritionEstimates, type PersonalProfile } from './nutrition';
 export type Exercise = { name: string; sets: number; reps: string; restSeconds?: number };
 export type Workout = { id: string; name: string; focus: string; weekdays: number[]; exercises: Exercise[] };
@@ -16,6 +17,7 @@ export type Store = {
   waterEntries: WaterEntry[]; cardioEntries: CardioEntry[]; workoutLogs: WorkoutLog[];
   cardioKm: number; cardioGoalKm: number; activeWorkout: ActiveWorkout | null;
   profile: PersonalProfile; workouts: Workout[]; selectedWorkoutId: string;
+  preferences: AIPreferences;
 };
 export function dates(now = new Date()) {
   const monday = new Date(now);
@@ -27,12 +29,12 @@ export function createInitialStore(now = new Date()): Store {
     { name: 'Supino reto', sets: 3, reps: '8–12' }, { name: 'Supino inclinado com halteres', sets: 3, reps: '10–12' },
     { name: 'Desenvolvimento de ombros', sets: 3, reps: '10–12' }, { name: 'Elevação lateral', sets: 3, reps: '12–15' }, { name: 'Tríceps na polia', sets: 3, reps: '10–12' },
   ];
-  return { ...dates(now), water: 0, waterGoal: 2500, calorieGoal: 2200, cardioGoal: 150, cardio: 0, cardioKm: 0, cardioGoalKm: 15, activeWorkout: null, meals: [], weights: [], sets: {}, sessions: [], waterEntries: [], cardioEntries: [], workoutLogs: [], profile: { ...emptyProfile }, selectedWorkoutId: 'workout-a', workouts: [{ id: 'workout-a', name: 'Treino A', focus: 'Peito, ombros e tríceps', weekdays: [], exercises }], exercises };
+  return { ...dates(now), water: 0, waterGoal: 2500, calorieGoal: 2200, cardioGoal: 150, cardio: 0, cardioKm: 0, cardioGoalKm: 15, activeWorkout: null, preferences: { ai_consent: null }, meals: [], weights: [], sets: {}, sessions: [], waterEntries: [], cardioEntries: [], workoutLogs: [], profile: { ...emptyProfile }, selectedWorkoutId: 'workout-a', workouts: [{ id: 'workout-a', name: 'Treino A', focus: 'Peito, ombros e tríceps', weekdays: [], exercises }], exercises };
 }
 export function normalizeStore(saved: Store, now = new Date()): Store {
   const initial = createInitialStore(now);
   const workouts = saved.workouts?.length ? saved.workouts : [{ ...initial.workouts[0], exercises: saved.exercises || initial.exercises }];
-  const normalized = { ...initial, ...saved, profile: { ...emptyProfile, ...saved.profile }, workouts, selectedWorkoutId: workouts.some(w => w.id === saved.selectedWorkoutId) ? saved.selectedWorkoutId : workouts[0].id,
+  const normalized = { ...initial, ...saved, preferences: { ...saved.preferences, ai_consent: saved.preferences?.ai_consent ?? null }, profile: { ...emptyProfile, ...saved.profile }, workouts, selectedWorkoutId: workouts.some(w => w.id === saved.selectedWorkoutId) ? saved.selectedWorkoutId : workouts[0].id,
     ...(saved.day !== initial.day ? { day: initial.day, water: 0, meals: [], sets: saved.activeWorkout ? saved.sets : {} } : {}),
     ...(saved.week !== initial.week ? { week: initial.week, cardio: 0, cardioKm: 0 } : {}),
   };

@@ -36,3 +36,25 @@ Inventário da busca do provedor anterior (antes da troca): `README.md`; `docs/I
 9. **Fechamento:** acessibilidade, carregamento progressivo, docs e export de novas tabelas. Import ainda não existe e não será fingida como disponível. Políticas/testes de isolamento e passos manuais completos.
 
 Todas as tabelas novas terão RLS por titular, FK com cascata adequada e índice `(user_id, data)`; nenhuma publicação remota sem configuração administrativa. O objetivo autorizado nesta rodada termina ao concluir a Fase 1; fases 2–9 aguardam revisão.
+
+## Entrega da Fase 1
+
+- Provedor REST Gemini e interface compartilhada, com modelo por função, chave em cabeçalho, schema documentado, timeout, bloqueios, erros seguros e testes simulados.
+- Consentimento versionado persistido e verificado por titular no servidor; autorização/revogação no Perfil e na análise; sincronização aguardada antes de enviar. Perfil adulto exigido pelos termos do provedor.
+- Revisão editável de nutrientes, nome, alimentos, porções, confiança e notas; pedidos de esclarecimento não podem ser salvos como estimativa. Foto reduzida a 1024 px em JPEG 0,8, reencodada sem EXIF.
+- Nova migração transacional/idempotente de quotas, contadores antigos preservados, wrapper compatível, coach/chat compartilhando bucket, limpeza pelo job existente. Sem migração geral dos logs/datas nem mudanças em migrações anteriores.
+- Recursos das fases 2–9 não foram implementados nesta rodada. A preparação de quota/modelos não significa que funções de corpo ou coach já existam.
+
+Arquivos da Fase 0: `AGENTS.md`, `docs/PLAN-FEATURES.md`.
+
+Arquivos da Fase 1:
+
+- App: `src/App.tsx`, `src/components/MealAnalyzer.tsx`, `src/components/AIConsentSettings.tsx`, `src/components/ModalDialog.tsx`, `src/lib/mealImage.ts`, `src/lib/store.ts`, `src/lib/useCloudStore.ts`, `src/responsive.css`.
+- Servidor: `supabase/functions/_shared/ai-provider.ts`, `gemini-provider.ts`, `ai-consent.ts`, `analyze-handler.ts`, `meal-schema.ts`; `supabase/functions/analyze-meal/index.ts`; `supabase/functions/.env.example`.
+- Banco: `supabase/migrations/202610040002_ai_provider.sql`.
+- Testes: `tests/gemini.test.tsx`, `tests/meal-analyzer.test.tsx`, `tests/cloud-store.test.tsx`, `tests/integrations.test.tsx`, `tests/security.test.tsx`, `tests/sql/ai-quota.check.ts`; `deno.lock` fixa as dependências da verificação isolada/Deno, sem novo SDK ou dependência no frontend.
+- Docs: `README.md`, `docs/INTEGRATIONS.md`, `docs/SECURITY.md`, `docs/MANUAL-STEPS.md`, este plano. O ambiente local ignorado das funções teve variáveis do provedor anterior removidas, sem exibir/commitar valores.
+
+Passos administrativos em [MANUAL-STEPS.md](MANUAL-STEPS.md). Testes não fazem chamadas reais; pg_cron é simulado no PostgreSQL/WASM, portanto cron/faturamento/modelo precisam de verificação no Supabase/Google antes de disponibilizar a IA.
+
+Validação final: 81 testes Vitest passaram, build passou e checagem Deno das duas funções passou. A verificação isolada de PostgreSQL passou em 50 checagens. Busca na árvore atual não encontrou referências ao provedor/modelo anterior; histórico do Git foi preservado. Nenhum secret de IA foi encontrado no bundle.

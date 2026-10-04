@@ -13,6 +13,21 @@ afterEach(cleanup);
 const initial = { water: 0 };
 const normalize = (s: typeof initial) => s;
 describe('Persistência por usuário', () => {
+  it('salva o patch do consentimento mesmo chamando flush antes de um novo render', async () => {
+    const { result } = renderHook(() => useCloudStore('owner-a', initial, normalize));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    await act(async () => { await result.current.updateAndFlush({ water: 777 }); });
+    expect(db.upsert).toHaveBeenLastCalledWith({ user_id: 'owner-a', data: { water: 777 } }, { onConflict: 'user_id' });
+    expect(result.current.status).toBe('Tudo salvo na sua conta');
+  });
+  it('não confirma escolha quando o salvamento imediato falha', async () => {
+    const { result } = renderHook(() => useCloudStore('owner-a', initial, normalize));
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    db.upsert.mockResolvedValueOnce({ error: new Error('offline') });
+    await act(async () => { await expect(result.current.updateAndFlush({ water: 778 })).rejects.toThrow('offline'); });
+    expect(result.current.status).toBe('Alterações não salvas');
+    expect(result.current.data.water).toBe(778);
+  });
   it('carrega apenas o usuário autenticado e grava alterações com seu id', async () => {
     const { result } = renderHook(() => useCloudStore('owner-a', initial, normalize));
     await waitFor(() => expect(result.current.loading).toBe(false));

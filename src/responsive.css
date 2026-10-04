@@ -257,3 +257,11 @@ footer > span:last-child { margin-left: 0; width: 100%; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+/* AI permission and review controls inherit both theme palettes. */
+.ai-consent { display: grid; gap: 14px; color: var(--text); }
+.ai-consent p { font-size: 14px; line-height: 1.6; }
+.ai-consent .consent-check { display: flex; align-items: center; gap: 12px; min-height: 48px; }
+.ai-consent .consent-check input { width: 24px; height: 24px; min-height: 24px; flex-shrink: 0; accent-color: var(--primary); }
+.ai-consent button { min-height: 48px; }
+.meal-food-editor { border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 0; }
+.meal-food-editor legend { padding: 0 6px; font-size: 14px; }

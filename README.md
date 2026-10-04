@@ -1,46 +1,66 @@
 # Vitra
 
-Webapp pessoal de treino, alimentação e hábitos, em React e TypeScript.
+Webapp de treino, alimentação e hábitos com React 19, TypeScript, Vite e Supabase.
+
+## Funcionalidades
+
+- Cadastro com nome, e-mail e senha, confirmação de e-mail, recuperação de senha e login.
+- Modelos de treino personalizados por dia da semana; carga, repetições e descanso.
+- Cronômetro por timestamps, pausas e recuperação após suspensão da página.
+- Água diária, cardio semanal em quilômetros, refeições e macros.
+- Peso e evolução, perfil com estimativas de IMC e calorias, metas e exportação JSON.
+- Análise de refeições pelo Google Gemini, com consentimento versionado verificado no servidor, revisão editável e confirmação antes de salvar. A foto é reduzida e reencodada sem EXIF; não é armazenada no Vitra.
+- Passos manuais ou importados pelo app Atalhos do iPhone.
+- Layout mobile-first e temas Claro, Escuro e Sistema, com preferência salva neste dispositivo.
 
 ## Executar
 
+Requer Node compatível com Vite e npm.
+
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
-## Build
+Copie `.env.example` para `.env.local` e preencha somente `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY`. Chave anon pública também é aceita. Não usar service role ou chave de IA no frontend. Variáveis `NEXT_PUBLIC_*` precisam ser renomeadas para Vite.
 
-```sh
-npm run build
-```
+Em Supabase → Authentication → URL Configuration, configure Site URL e Redirect URLs para `http://localhost:5173` e o domínio HTTPS publicado. O cadastro/recuperação retornam à origem atual. Para uso público configure [SMTP próprio](https://supabase.com/docs/guides/auth/auth-smtp). Reinicie o servidor ao mudar o ambiente.
 
-Inclui painel diário, água, calorias e macros, cardio em quilômetros, cronômetro de treino, registro de séries, descanso, peso a cada três dias, metas e exportação JSON. Cadastro por nome, e-mail e senha, login, confirmação de e-mail, recuperação de senha e saída da conta usam o Supabase Auth. Os registros ficam no banco, vinculados ao usuário autenticado. O painel reinicia os contadores na virada do dia/semana sem apagar o histórico e preserva treinos em andamento. IA de refeições e passos do Saúde via Atalhos exigem a configuração adicional descrita em [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md).
+## Banco e integrações
 
-## Configurar o Supabase
+As migrações ficam em `supabase/migrations/`, em ordem. Execute somente as pendentes: as três primeiras não são idempotentes. As duas de 04/10/2026 são idempotentes e preservam dados.
 
-1. No SQL Editor do seu projeto Supabase, execute as migrações em ordem, uma vez cada: `supabase/migrations/202610030001_vitra.sql` e `supabase/migrations/202610030002_history.sql`. Se já executou a primeira, execute apenas a segunda. Elas criam `profiles`, `user_data`, `daily_records`, os gatilhos do perfil e do histórico e as regras de Row Level Security.
-2. Copie `.env.example` para `.env.local` e preencha a URL e a chave pública publishable (ou anon). O projeto usa Vite: variáveis `NEXT_PUBLIC_*` devem ser renomeadas para `VITE_*` conforme o exemplo. Nunca use service_role ou chave secreta no frontend.
-3. Em **Authentication → URL Configuration**, configure a Site URL e adicione `http://localhost:5173` às Redirect URLs durante o desenvolvimento. Adicione também o endereço do aplicativo publicado. O cadastro e a recuperação retornam à origem atual do app.
-4. Mantenha o provedor de e-mail habilitado. Com a confirmação ativa, o usuário só acessa o painel após confirmar o e-mail. Para enviar e-mails a usuários reais, configure um SMTP próprio em Authentication conforme a [documentação de e-mails do Supabase](https://supabase.com/docs/guides/auth/auth-smtp).
-5. Reinicie `npm run dev` após alterar as variáveis.
+`user_data` ainda guarda o documento do painel, metas, perfil, modelos, séries e logs. `daily_records` arquiva os dias por gatilho transacional. Passos/conexões e quotas têm tabelas próprias. A troca do provedor não migra nem apaga os logs antigos.
 
-Senhas são gerenciadas pelo Supabase Auth e não são armazenadas na tabela de perfis. A tabela `profiles` contém nome e e-mail; `user_data` contém um documento JSON com o painel de cada usuário, metas, exercícios, peso, atividades de cardio, registros individuais de água e séries/cargas de todos os treinos finalizados. `daily_records` guarda os totais de água, refeições, metas e séries por dia: um gatilho atualiza o histórico na mesma transação de salvamento, preservando o dia anterior ao reiniciar os contadores. A tela Evolução exibe peso, histórico diário, treinos concluídos e cardio. As regras do banco permitem acesso somente pelo titular. Registros antigos do navegador não são importados automaticamente para evitar atribuí-los à conta errada.
+A tela mostra status de salvamento/repetição e salva antes de sair. Offline permanece em memória; mantenha a página aberta enquanto houver alterações pendentes. Em dois dispositivos prevalece o último painel salvo, sem mesclagem.
 
-O app mostra o status de salvamento, permite repetir uma gravação que falhou e salva as alterações pendentes antes de sair. Alterações offline ficam em memória até serem salvas: mantenha a página aberta se houver erro. Em edição simultânea em dois dispositivos, prevalece o último painel salvo; não há mesclagem de alterações concorrentes.
+Para ativar IA, siga [MANUAL-STEPS.md](docs/MANUAL-STEPS.md): plano pago do Gemini com faturamento ativo, secret `GEMINI_API_KEY` no Supabase, origens permitidas, migração de quotas e deploy de `analyze-meal`. O modelo padrão é `gemini-3.1-flash-lite`, configurável por função sem editar o código. A IA exige perfil adulto e consentimento; registros manuais continuam disponíveis.
 
-## Testes
+Veja [INTEGRATIONS.md](docs/INTEGRATIONS.md) para o timer, Gemini, perfil e Atalhos; [SECURITY.md](docs/SECURITY.md) para privacidade, quotas, rotação e revogação; [PLAN-FEATURES.md](docs/PLAN-FEATURES.md) para o reconhecimento e fases futuras.
 
-O layout prioriza celulares e usa colunas e navegação lateral em telas maiores. O botão de lua/sol no topo troca o tema; em Perfil → Aparência há opções Claro, Escuro e Sistema. A preferência fica salva neste dispositivo e acompanha mudanças do sistema quando essa opção é escolhida.
-
-Os recursos de timer persistente, cardio em quilômetros, peso a cada três dias, IA NVIDIA e passos por Atalhos estão descritos em [docs/INTEGRATIONS.md](docs/INTEGRATIONS.md), com os passos para ativar as funções e a migração adicional.
+## Validação
 
 ```sh
 npm test
+npm run build
+npx deno check supabase/functions/analyze-meal/index.ts supabase/functions/health-steps/index.ts
 ```
 
-Os testes verificam os fluxos de autenticação e persistência com um cliente Supabase simulado, além da preservação dos históricos após a virada do dia e da semana. Para verificar a configuração real, após aplicar as migrações: crie uma conta, confirme o e-mail, registre água e entre em outro navegador; o registro deve ser carregado. Uma segunda conta deve abrir sem os registros da primeira. Teste também recuperação de senha, logout e os registros na tela Evolução. Esses testes reais exigem um projeto Supabase configurado e não são executados automaticamente contra contas reais.
+Vitest/Testing Library usam clientes e provedor simulados; nenhuma chamada real ao Gemini. Cobrem autenticação, salvamento, histórico, timer, perfil, consentimento, revisão, foto reduzida, CORS e erros do provedor.
 
-## Segurança
+Há também verificação SQL isolada com PostgreSQL/WASM (sem banco remoto):
 
-Veja [docs/SECURITY.md](docs/SECURITY.md) para limites, origens permitidas, rotação de chaves e aplicação da migração de segurança da Fase 1.
+```sh
+npx deno run --node-modules-dir=auto --allow-read --allow-env --allow-sys tests/sql/ai-quota.check.ts
+```
+
+Essa verificação testa quotas, wrapper, permissões, limpeza e idempotência; o agendador Cron é simulado. Verifique o cron no Supabase e os recursos iOS em um iPhone.
+
+## Estrutura
+
+`src/`: app, componentes, autenticação, tema, lógica e persistência.
+`supabase/functions/`: handlers, provedor Gemini e Edge Functions.
+`supabase/migrations/`: esquema/RLS e quotas.
+`tests/`: testes locais; `docs/`: plano, integrações, segurança e publicação.
+
+O build estático fica em `dist/`; publique em HTTPS com as duas variáveis públicas de ambiente. As funções/secrets/migrações são publicados separadamente no Supabase. O webapp instalado ainda não oferece Live Activities/HealthKit direto nem fila offline durável.

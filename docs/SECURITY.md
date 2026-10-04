@@ -1,85 +1,62 @@
-# Segurança — Vitra
+# Segurança e privacidade — Vitra
 
-## Escopo e ameaças
+## Dados e ameaças
 
-O app guarda dados de saúde e hábitos. Os principais riscos são acesso entre contas, roubo de sessão/token, exposição de chaves, abuso dos endpoints e envio de conteúdo não confiável ao provedor de IA.
+O Vitra guarda dados de saúde e hábitos. Os riscos principais são acesso entre contas, roubo de sessão/token, exposição de secrets, abuso de quotas e conteúdo não confiável enviado à IA.
 
-- O navegador usa somente a URL Supabase e a chave pública; RLS aplica a identidade `auth.uid()` aos registros. A chave pública não substitui autenticação.
-- `analyze-meal` valida o JWT com `auth.getUser`, limita a entrada e usa a quota atômica existente de **20 análises por usuário por hora de calendário**. Fotos/descrições são enviadas à NVIDIA somente para análise; identidade e JWT não são enviados. Estimativas são dados não confiáveis e passam por validação.
-- `ALLOWED_ORIGINS` contém origens exatas separadas por vírgula, sem barra final. Inclua `http://localhost:5173` e o domínio HTTPS publicado. Não há curinga. Sem configuração, requisições de navegador são recusadas. Preflight aceita apenas POST e os cabeçalhos previstos. Respostas variam por Origin.
-- CORS limita navegadores, não autentica clientes. Clientes sem Origin continuam sujeitos ao JWT e à quota. Não confie em Origin como prova de identidade.
-- `health-steps` não oferece CORS. O app Atalhos envia um token dedicado de 256 bits. Apenas o hash SHA-256 é armazenado; titular e validade vêm de `health_connections`, nunca do JSON recebido. Tokens expiram em 90 dias.
-- A nova quota limita a **60 tentativas por hash por hora de calendário**, antes da consulta de titular, inclusive para tokens revogados/expirados com formato válido. A operação no banco é atômica. Falha na quota bloqueia a gravação. Clientes não podem ler, consumir ou zerar quotas.
-- Limites por token não impedem ataques distribuídos com hashes aleatórios. Para uso público em maior escala, adicione proteção por IP no gateway e monitore tráfego e custo. Nunca registre Authorization, tokens ou corpos de refeições em logs.
-- Um job horário limpa somente quotas de refeições/passos com mais de sete dias; não remove perfis nem registros de saúde. RLS, timer e histórico existentes permanecem inalterados.
-- `uid()` gera identificadores de registros com `randomUUID` ou `getRandomValues` em HTTP local. Não o use para senhas/tokens; a geração de tokens do Saúde continua separada e criptográfica. Use HTTPS em produção.
+O navegador recebe apenas URL/chave pública Supabase. RLS protege os registros pelo titular. Senhas ficam no Auth. Service role e chave de IA nunca entram no navegador, bundle, respostas ou logs. Não registrar Authorization, fotos, descrições ou detalhes de erros do provedor.
 
-## Segredos e auditoria do Git
+## Análise de refeições
 
-- `.env.local` da raiz: apenas `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` (públicos).
-- `supabase/functions/.env.local`: `NVIDIA_API_KEY`, `ALLOWED_ORIGINS`, modelo e endpoint. Copie o exemplo e preencha localmente. O arquivo não é publicado com o frontend.
-- Produção: Supabase → Edge Functions → Secrets. `SUPABASE_SERVICE_ROLE_KEY` é fornecida pelo ambiente Supabase; nunca deve entrar no frontend. `SUPABASE_ACCESS_TOKEN` da CLI fica fora do projeto.
-- `.gitignore` exclui `.env`, `.env.*` e `node_modules/` em qualquer nível, permitindo somente `.env.example`. O exemplo das funções contém chave vazia.
+Fluxo: navegador reencoda pixels em JPEG a 1024 px/qualidade 0,8 → usuário autoriza e salva preferências → clique explícito em Analisar → Edge Function valida JWT com auth.getUser → lê consentimento/idade do titular em user_data → valida tamanho/formato → consome quota → provedor Gemini → JSON validado → revisão editável → confirmação salva refeição.
 
-Na revisão da Fase 1, `git ls-files` mostrou apenas os dois `.env.example` e nenhum `node_modules`. A consulta de histórico em todos os refs locais não encontrou versões dos arquivos de ambiente reais nem de `node_modules`. A inspeção dos blobs textuais históricos e do bundle não encontrou padrões de chaves privadas/token JWT. Essa auditoria cobre os refs disponíveis neste clone; não comprova ausência em outros clones, forks, reflogs remotos ou mensagens fora do Git.
+A foto permanece em memória, é descartada ao fechar e não é armazenada pelo Vitra. Descrição/foto saem do Supabase e chegam ao Google; não enviamos nome, e-mail, UUID, senha ou JWT. O usuário deve evitar dados pessoais na própria foto/descrição. A aplicação envia store=false e não usa Files API/cache explícito. Isso não elimina retenção de segurança do Google.
 
-Verifique sem abrir os valores:
+Consentimento: `preferences.ai_consent = { version, grantedAt }`, com versão atual e timestamp ISO; null significa desativado. Conta antiga começa sem autorização. Perfil deve ter idade adulta salva (18–100). O servidor lê a preferência do banco por UUID autenticado, ignorando alegações de consentimento/user_id no corpo. Salvar autorização é aguardado antes da chamada. Perfil e tela de análise permitem desativar; a desativação precisa ser sincronizada para valer em todos os dispositivos. Não é possível retirar uma foto que já tenha sido enviada durante uma análise em curso. Futuras fotos do corpo precisarão de consentimento separado e não estão implementadas nesta fase.
 
-```sh
-git ls-files -- '.env*' 'supabase/functions/.env*' 'node_modules/*'
-git log --all --oneline -- .env .env.local .env.production supabase/functions/.env.local node_modules
-git check-ignore .env.local supabase/functions/.env.local node_modules/
-```
+O JSON do painel ainda usa último salvamento entre dispositivos: um painel antigo pode substituir preferências. Evite editar simultaneamente; controle de concorrência/revogação resistente a snapshots antigos será necessário antes de múltiplos dispositivos concorrentes. A função sempre verifica o estado atualmente persistido.
 
-Se algum segredo tiver sido publicado, revogue/rotacione primeiro. Em um clone dedicado, use `git filter-repo --path CAMINHO_DO_ARQUIVO --invert-paths` para cada arquivo afetado, revise e coordene o force-push de branches/tags com colaboradores. Eles deverão clonar novamente. Reescrever histórico não desfaz uma exposição; contate o GitHub se houver cópias em PRs/cache. Não execute limpeza destrutiva no clone de trabalho sem backup.
+## Privacidade e plano do Gemini
 
-## Rotacionar a chave NVIDIA
+**Plano pago com faturamento ativo no projeto Google Cloud é obrigatório para o Vitra**, por tratar dados de saúde/fotos. Não basta criar uma chave gratuita.
 
-A chave anterior foi compartilhada no chat; considere-a exposta e substitua-a antes de usar em produção.
+Nos [termos oficiais](https://ai.google.dev/gemini-api/terms), o serviço gratuito pode usar entrada/saída para melhorar produtos e envolver revisão humana; não envie dados sensíveis ao plano gratuito. Plano pago não usa prompts/respostas para essa melhoria, mas pode retê-los temporariamente para segurança e obrigações legais. Usuários no EEE, Reino Unido e Suíça só devem ser atendidos com serviços pagos. Recursos de IA são destinados a adultos e não fornecem aconselhamento médico.
 
-1. Crie uma nova chave no painel NVIDIA.
-2. Atualize `NVIDIA_API_KEY` em Supabase → Edge Functions → Secrets e no arquivo local **das funções**, sem imprimir o conteúdo nem incluir a chave em comandos/chamadas de log.
-3. Teste uma análise com conta autenticada; confirme que origens externas são recusadas e que erros não revelam a chave.
-4. Revogue a chave anterior no painel NVIDIA. Em caso de suspeita de abuso, revogue imediatamente antes dos demais passos.
+O servidor não consegue inferir faturamento ativo a partir da chave: o administrador deve verificá-lo no Google Cloud. Os termos do fornecedor podem mudar; revise antes de disponibilizar o app a terceiros.
 
-Alternativa para enviar o arquivo local:
+## Provedor, CORS e quotas
 
-```sh
-npx supabase secrets set --env-file supabase/functions/.env.local --project-ref SEU_PROJECT_REF
-```
+A interface AIProvider separa handlers do fornecedor. Gemini REST usa x-goog-api-key no cabeçalho, nunca query string; não segue redirects. Endpoint é base HTTPS administrativa sem query/credenciais; usuários não podem enviar URLs. Não há ferramentas nem escrita por IA. Texto livre entra delimitado como dado; schema não garante correção nutricional, por isso há validação local e confirmação humana.
 
-## Revogar tokens do Saúde
+Respostas bloqueadas, truncadas, com JSON/campos inválidos ou pensamentos são descartadas. Erros HTTP/timeout viram mensagens fixas, sem revelar resposta interna ou chave.
 
-No Vitra, abra **Conectar Saúde pelo Atalhos → Revogar**. Isso exclui sua `health_connections`; o próximo envio será recusado. Gerar novo token substitui o hash antigo. Atualize o Atalho com o novo token e remova o anterior; nunca o inclua em backup compartilhado. O administrador pode excluir a conexão do usuário pelo SQL Editor, sem consultar o valor do token. As quotas antigas expiram pela limpeza automática.
+ALLOWED_ORIGINS lista origens exatas separadas por vírgula, incluindo http://localhost:5173 e domínio publicado, sem barra final. Sem configuração, origens de navegador são recusadas. CORS não é autenticação: chamadas sem Origin ainda exigem JWT e consentimento. Preflight aceita só POST/cabeçalhos conhecidos.
 
-## Aplicar a Fase 1
+`consume_ai_request` e `ai_quota_settings` são acessíveis apenas por service_role; clientes não leem/zeram quotas. Limites padrão: meal 20 por hora UTC; body_photo 5 por dia UTC; coach/chat juntos 30 por hora UTC. Tipos desconhecidos são recusados. Limites podem ser alterados administrativamente em ai_quota_settings. O wrapper consume_meal_analysis compartilha a quota nova e mantém clientes já publicados funcionando. Contadores antigos são copiados com greatest para não ganhar nova franquia no deploy. O upsert é atômico.
 
-1. Confirme que as migrações 001, 002 e 003 já foram executadas. Não repita as antigas; elas não são idempotentes.
-2. Ative **Supabase → Integrations → Cron → pg_cron**, conforme a [documentação oficial](https://supabase.com/docs/guides/cron/install).
-3. No SQL Editor execute `supabase/migrations/202610040001_security.sql`. É transacional e idempotente. Se a extensão não estiver disponível, a transação falha inteira; habilite-a antes de repetir.
-4. Copie/revise o exemplo das funções. Configure `ALLOWED_ORIGINS=http://localhost:5173,https://SEU-DOMINIO` (adicione IP/porta exatos para teste local por rede). Atualize os Secrets via painel ou comando acima. Não envie valores ao chat.
-5. Publique as duas funções após a migração e os secrets:
+O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. Modelos/funções body/coach ainda não foram publicados; somente a configuração/quota está preparada.
 
-```sh
-npx supabase functions deploy analyze-meal --project-ref SEU_PROJECT_REF --no-verify-jwt
-npx supabase functions deploy health-steps --project-ref SEU_PROJECT_REF --no-verify-jwt
-```
+## Saúde por Atalhos
 
-O JWT de refeições e o token do Saúde são verificados dentro das funções; `--no-verify-jwt` não libera acesso aos dados.
+health-steps não oferece CORS; aceita token dedicado de 256 bits, armazena só SHA-256 e deriva o titular do banco. Token expira em 90 dias. Quota de 60 tentativas por hash/hora conta inclusive tokens revogados/expirados de formato válido. Falha na consulta de quota impede gravar.
 
-6. Em Cron → Jobs confirme **vitra-cleanup-integration-limits**, ativo, `17 * * * *`. Consulte o histórico das execuções. O [agendamento nomeado](https://supabase.com/docs/guides/cron/quickstart) atualiza o job em reaplicações.
-7. Verifique com uma conta de teste: origem permitida, origem recusada, sincronização e revogação de token. Não esgote quotas de uma conta em uso.
+Revogue em Conectar Saúde pelo Atalhos → Revogar. Gerar token novo substitui o anterior; atualize o Atalho e remova o antigo. Não compartilhe tokens. A quota por hash não bloqueia ataque distribuído com hashes aleatórios; proteções por IP/gateway podem ser necessárias para uso público.
 
-Os testes locais cobrem handlers, origens, erro de quota, revogação, tamanho de corpo e fallback de UUID. A aplicação da migração, concorrência SQL, permissões e execução do cron precisam ser verificadas no banco; build/testes de JavaScript não substituem essa validação.
+## Secrets e rotação
 
-## Entrega da Fase 1 — arquivos
+- Raiz: .env.local tem apenas variáveis públicas VITE_SUPABASE_*.
+- Funções: .env.example lista nomes e padrões sem chave real; configure GEMINI_API_KEY em Supabase → Edge Functions → Secrets. Arquivos preenchidos .env* são ignorados pelo Git.
+- SUPABASE_SERVICE_ROLE_KEY vem do ambiente Supabase. SUPABASE_ACCESS_TOKEN da CLI fica fora do projeto.
+- Revogue a chave do provedor anterior no respectivo painel, pois foi compartilhada fora do repositório; remova secrets antigos do Supabase. Não os exiba no terminal.
 
-- Ambientes: `.env.example`, `supabase/functions/.env.example`. Os arquivos locais ignorados foram ajustados sem serem versionados. `.gitignore` já possuía as regras necessárias e foi preservado.
-- CORS: `supabase/functions/_shared/cors.ts`, `supabase/functions/_shared/analyze-handler.ts`, `supabase/functions/analyze-meal/index.ts`.
-- Passos: `supabase/functions/_shared/health-handler.ts`, `supabase/functions/health-steps/index.ts`.
-- Banco: `supabase/migrations/202610040001_security.sql`. Nenhuma migração anterior foi alterada.
-- IDs: `src/lib/uid.ts`, `src/lib/store.ts`, `src/components/WorkoutLibrary.tsx`.
-- Testes: `tests/security.test.tsx`, `tests/integrations.test.tsx`.
-- Documentação: `docs/SECURITY.md`, `docs/INTEGRATIONS.md`, `README.md`.
+Para rotacionar Gemini: crie uma nova chave no projeto com faturamento ativo, atualize o Secret no Supabase, faça uma análise com conta de teste e revogue a chave anterior no Google AI Studio. Em suspeita de abuso, revogue imediatamente. Não envie nenhuma chave no chat.
 
-Validação local: 49 testes passaram, build passou e `deno check` passou nas duas Edge Functions. Não foram aplicadas migrações nem publicados secrets/funções no Supabase nesta fase. As fases 2–6 aguardam revisão do usuário.
+## Git e validação
+
+.gitignore exclui .env/.env.* e node_modules em qualquer nível, liberando apenas .env.example. Auditoria anterior dos refs locais não encontrou secrets nos blobs. Nenhuma reescrita de histórico ou mudança em migrações antigas foi feita nesta troca.
+
+Se descobrir uma exposição: revogue primeiro; em clone dedicado, use git filter-repo para remover arquivos afetados e coordene force-push/reclones. Histórico limpo não desfaz vazamento em forks/caches. Não faça limpeza destrutiva no clone de trabalho sem backup.
+
+uid() usa randomUUID quando disponível, ou getRandomValues em HTTP local. Não serve como helper de autenticação; tokens mantêm geração criptográfica separada. Use HTTPS em produção.
+
+Testes usam IA simulada; verificação SQL isolada cobre limites, wrapper, idempotência e permissões sem tocar produção. Cron real e acesso ao modelo/plano precisam de confirmação administrativa. Siga [MANUAL-STEPS.md](MANUAL-STEPS.md).

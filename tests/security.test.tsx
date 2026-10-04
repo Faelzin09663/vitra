@@ -25,7 +25,7 @@ describe('CORS por origem exata', () => {
   const setup = (allowedOrigins = 'http://localhost:5173,https://vitra.example') => {
     const authenticate = vi.fn().mockResolvedValue(null);
     const fetcher = vi.fn();
-    return { authenticate, fetcher, handler: createAnalysisHandler({ allowedOrigins, authenticate, fetcher, allowRequest: async () => true }) };
+    return { authenticate, fetcher, handler: createAnalysisHandler({ allowedOrigins, authenticate, provider: { model: 'test-model', generateStructured: fetcher }, hasConsent: async () => true, allowRequest: async () => true }) };
   };
   it('ignora curingas, origens opacas, credenciais e caminhos', () => {
     expect(parseAllowedOrigins('*,null,https://vitra.example/,https://user:pass@vitra.example,http://localhost:5173,http://localhost:5173')).toEqual(['http://localhost:5173']);
