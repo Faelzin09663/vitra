@@ -32,7 +32,7 @@ it("backup inclui todas as tabelas novas, paginação e isolamento sem tokens/im
   expect(backup.tables.pain_reports).toHaveLength(1001);
   expect(calls).not.toContain("health_connections");
   expect(JSON.stringify(backup)).not.toContain("token_hash");
-  expect(backup.version).toBe(3);
+  expect(backup.version).toBe(4);
 });
 it("exclusão exige JWT, senha e confirmação; nunca aceita alvo vindo do cliente", async () => {
   const remove = vi.fn(async () => {}),

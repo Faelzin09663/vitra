@@ -29,7 +29,7 @@ As chaves ficam no `.env` da raiz e são lidas pelo servidor Vitra. `npm run dev
 
 A análise usa a API REST do Google Gemini, com chave `GEMINI_API_KEY` somente no .env do backend Vitra. Crie a chave no [Google AI Studio](https://aistudio.google.com/apikey) e ative o faturamento no projeto Google Cloud. Não coloque a chave no frontend nem em `VITE_*`. Siga [MANUAL-STEPS.md](MANUAL-STEPS.md) para a migração `202610040002_ai_provider.sql`, configuração do servidor Vitra.
 
-O padrão é `gemini-3.1-flash-lite`, estável, de menor custo, com imagens e JSON estruturado conforme a [documentação do modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). O encerramento anunciado é 07/05/2027; planeje trocar antes. `GEMINI_MODEL_MEAL` tem prioridade sobre `GEMINI_MODEL`. `GEMINI_MODEL_BODY` e `GEMINI_MODEL_COACH` configuram fotos corporais e coach e seguem o mesmo fallback. Se a qualidade for insuficiente, configure um modelo mais capaz compatível com imagens/schema sem mudar o código. A disponibilidade na sua conta precisa ser validada no deploy.
+O padrão é `gemini-3.1-flash-lite`, estável, de menor custo, com imagens e JSON estruturado conforme a [documentação do modelo](https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite). O encerramento anunciado é 07/05/2027; planeje trocar antes. `GEMINI_MODEL_MEAL` tem prioridade sobre `GEMINI_MODEL`. `GEMINI_MODEL_BODY`, `GEMINI_MODEL_COACH` e `GEMINI_MODEL_VIT` configuram fotos corporais e coach e seguem o mesmo fallback. Se a qualidade for insuficiente, configure um modelo mais capaz compatível com imagens/schema sem mudar o código. A disponibilidade na sua conta precisa ser validada no deploy.
 
 `GEMINI_ENDPOINT` é uma base HTTPS administrativa, por padrão `https://generativelanguage.googleapis.com/v1beta`, sem query/credenciais. A chave vai no cabeçalho `x-goog-api-key`, nunca na URL. Usuários não podem escolher URLs. Timeout padrão de 60 s; bloqueios de segurança, quota do provedor e falhas têm mensagens em português. Não há SDK novo ou parâmetros de amostragem.
 
@@ -104,6 +104,10 @@ O termo geral de IA agora é versão 2: solicita nova autorização dos usuário
 
 ## Fechamento e ativação
 
-As rotas de refeições, fotos corporais e coach funcionam após as migrações e preenchimento do .env do backend. Todos os comandos e o checklist estão em [MANUAL-STEPS.md](MANUAL-STEPS.md). A exclusão com senha do Perfil usa `/api/delete-account` no mesmo backend. Fotos usam URLs assinadas de 5 minutos e podem ser baixadas separadamente. Backup v3 exporta metadados, não os arquivos binários nem tokens do Saúde.
+As rotas de refeições, fotos corporais, coach e VIT funcionam após as migrações e preenchimento do .env do backend. Todos os comandos e o checklist estão em [MANUAL-STEPS.md](MANUAL-STEPS.md). A exclusão com senha do Perfil usa `/api/delete-account` no mesmo backend. Fotos usam URLs assinadas de 5 minutos e podem ser baixadas separadamente. Backup v4 exporta metadados, não os arquivos binários nem tokens do Saúde.
 
-Treino/evolução e seus recursos usam lazy/Suspense com skeletons. Diálogos têm foco, Tab/Escape e restauração. Telas/botões usam tokens de tema e safe areas; valide no aparelho conforme o checklist. O histórico do chat dura somente enquanto a tela permanece aberta.
+Treino/evolução e seus recursos usam lazy/Suspense com skeletons. Diálogos têm foco, Tab/Escape e restauração. Telas/botões usam tokens de tema e safe areas; valide no aparelho conforme o checklist. O histórico do chat numérico antigo dura somente enquanto a tela permanece aberta; o VIT persiste conversas no Supabase.
+
+## VIT com histórico e memória
+
+O menu VIT usa `/api/vit` no backend Vitra, com `GEMINI_MODEL_VIT` opcional no `.env`. A migração `202610040007_vit.sql` cria tabelas próprias para conversas, mensagens e memórias. O consentimento do VIT é independente do termo geral; fotos exigem também o consentimento corporal. VIT/coach/chat compartilham 30 solicitações por hora; fotos também consomem a quota corporal de 5 por dia. Consulte [VIT.md](VIT.md) para uso, retenção e limites. O histórico de sessão do coach antigo permanece separado do histórico persistente do VIT.

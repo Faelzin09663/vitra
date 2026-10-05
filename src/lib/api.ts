@@ -1,5 +1,6 @@
 import { supabase } from "./supabase";
 type Responses = {
+  vit: import('../../supabase/functions/_shared/vit-handler').SavedVitResponse;
   "analyze-meal": { analysis: unknown; model: string };
   "analyze-body-photos": { analysis: unknown; model: string };
   coach: {

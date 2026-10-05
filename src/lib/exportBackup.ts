@@ -11,12 +11,15 @@ export const BACKUP_TABLES = {
   daily_checkins: "date",
   habits: "created_at",
   habit_logs: "date",
+  vit_conversations: "updated_at",
+  vit_messages: "sequence",
+  vit_memories: "updated_at",
 } as const;
 export async function collectBackup(userId: string, dashboard: Store) {
   if (!supabase) throw new Error("Supabase não configurado.");
   const readAll = async (table: string, order: string) => {
     const rows: unknown[] = [];
-    for (let offset = 0; ; offset += 1000) {
+    for (let offset = 0;; offset += 1000) {
       let query = supabase!
         .from(table)
         .select("*")
@@ -29,15 +32,19 @@ export async function collectBackup(userId: string, dashboard: Store) {
           "photo_analyses",
           "habits",
           "custom_exercises",
+          "vit_conversations",
+          "vit_memories",
         ].includes(table)
-      )
+      ) {
         query = query.order("id");
+      }
       if (table === "habit_logs") query = query.order("habit_id");
       const { data, error } = await query.range(offset, offset + 999);
-      if (error)
+      if (error) {
         throw new Error(
           "Não foi possível exportar o histórico completo. Confira a conexão e as migrações.",
         );
+      }
       rows.push(...data);
       if (data.length < 1000) return rows;
     }
@@ -50,7 +57,7 @@ export async function collectBackup(userId: string, dashboard: Store) {
   );
   return {
     format: "vitra-backup",
-    version: 3,
+    version: 4,
     exportedAt: new Date().toISOString(),
     dashboard,
     tables: Object.fromEntries(entries),

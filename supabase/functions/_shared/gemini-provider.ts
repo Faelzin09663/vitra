@@ -1,6 +1,6 @@
 import { AIProviderError, type AIProvider, type StructuredRequest } from './ai-provider.ts';
 export const DEFAULT_GEMINI_MODEL = 'gemini-3.1-flash-lite';
-export function geminiConfig(env: (name: string) => string | undefined, kind: 'meal' | 'body' | 'coach') {
+export function geminiConfig(env: (name: string) => string | undefined, kind: 'meal' | 'body' | 'coach' | 'vit') {
   return {
     apiKey: env('GEMINI_API_KEY'),
     model: env(`GEMINI_MODEL_${kind.toUpperCase()}`)?.trim() || env('GEMINI_MODEL')?.trim() || DEFAULT_GEMINI_MODEL,

@@ -13,7 +13,8 @@ Webapp pessoal de treino, alimentação e hábitos em React 19, TypeScript, Vite
 - Medidas, gráficos, estimativa por circunferências e fotos privadas sem EXIF, comparação por ângulo e download/exclusão.
 - Check-in diário, média móvel de sete dias, hábitos por agenda, sequências e calendário de 90 dias.
 - Volume, 1RM estimado, possível platô e equilíbrio muscular com dados mínimos e alertas dispensáveis.
-- Gemini: refeições revisáveis, análise corporal opcional, coach e chat numérico com consultas fechadas, consentimentos e quotas.
+- VIT: assistente com conversas e memórias no Supabase, contexto dos registros e fotos próprias opcionais. [Como usar](docs/VIT.md).
+- Gemini: refeições revisáveis por texto/porções ou foto, análise corporal opcional, coach e chat numérico com consultas fechadas, consentimentos e quotas.
 - Passos manuais ou importados por Atalhos do iPhone; backup completo JSON e exclusão autenticada de conta.
 
 As sugestões são informativas, sem diagnóstico ou prescrição. IA exige idade adulta, consentimento e plano pago do Gemini.
@@ -29,7 +30,7 @@ npm run dev
 
 Todas as chaves ficam no **`.env` da raiz**, ignorado pelo Git. Use `.env.example` como modelo; neste checkout, a conexão pública existente foi preservada no `.env`. Preencha `SUPABASE_SECRET_KEY` e `GEMINI_API_KEY` no editor. Apenas variáveis `VITE_*` entram no navegador; nunca use esse prefixo em chaves privadas. A alternativa legada `SUPABASE_SERVICE_ROLE_KEY` também é aceita.
 
-`npm run dev` inicia frontend e backend juntos: Vite em 5173 (ou próxima porta livre) e API em 8787, com proxy `/api`. O runtime Deno é instalado pelo `npm ci`, sem instalação global. As rotas de refeições, fotos, coach, passos e exclusão de conta usam esse backend. Sem credenciais privadas, cadastro e registros continuam usando o Supabase diretamente, mas essas rotas informam configuração pendente.
+`npm run dev` inicia frontend e backend juntos: Vite em 5173 (ou próxima porta livre) e API em 8787, com proxy `/api`. O runtime Deno é instalado pelo `npm ci`, sem instalação global. As rotas de refeições, fotos, coach, VIT, passos e exclusão de conta usam esse backend. Sem credenciais privadas, cadastro e registros continuam usando o Supabase diretamente, mas essas rotas informam configuração pendente.
 
 Configure Site URL/Redirect URLs no Supabase Auth para localhost e seu domínio HTTPS. Para uso público configure [SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Reinicie o servidor ao alterar ambiente.
 
@@ -43,7 +44,7 @@ Logs legados permanecem em `user_data` e `daily_records`, sem migração destrut
 
 O salvamento do painel é serializado, com estado de sincronização e repetição. Offline fica em memória: mantenha a página aberta até sincronizar. Entre dispositivos, o último documento salvo prevalece, sem mesclagem. Tabelas novas usam upsert por titular/data ou ID.
 
-Backup v3 inclui todas as tabelas novas, registros arquivados e painel, com paginação. Não inclui tokens, credenciais ou bytes de fotos; baixe as imagens separadamente. Importação de backup ainda não existe.
+Backup v4 inclui todas as tabelas novas, registros arquivados e painel, com paginação. Não inclui tokens, credenciais ou bytes de fotos; baixe as imagens separadamente. Importação de backup ainda não existe.
 
 ## Validar
 
@@ -51,8 +52,9 @@ Backup v3 inclui todas as tabelas novas, registros arquivados e painel, com pagi
 npm test
 npm run build
 npm run check:server
-npx deno run --node-modules-dir=auto --allow-read --allow-env --allow-sys tests/sql/ai-quota.check.ts
-npx deno run --node-modules-dir=auto --allow-read --allow-env --allow-sys tests/sql/features-rls.check.ts
+npx deno run --node-modules-dir=none --allow-read --allow-env --allow-sys tests/sql/ai-quota.check.ts
+npx deno run --node-modules-dir=none --allow-read --allow-env --allow-sys tests/sql/features-rls.check.ts
+npx deno run --node-modules-dir=none --allow-read --allow-env --allow-sys tests/sql/vit-rls.check.ts
 ```
 
 Vitest/Testing Library usam Supabase e IA simulados. PostgreSQL/WASM verifica SQL/RLS, quota e idempotência, sem banco remoto; Cron e esquema Storage são fixtures. Não houve chamada real ao Gemini nem teste físico no iPhone. Valide publicação, faturamento, URLs assinadas e Atalhos no ambiente real seguindo o checklist manual.

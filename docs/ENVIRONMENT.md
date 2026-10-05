@@ -32,6 +32,8 @@ O Atalhos deve usar a URL HTTPS de `/api/health-steps` mostrada no app. Um iPhon
 
 As rotas de IA e exclusão validam JWT; Saúde valida seu token restrito. Consentimentos, quotas SQL, permissões por titular, fotos privadas e validação de respostas continuam ativos. Erros internos não são registrados nem devolvidos. O servidor entrega apenas arquivos de `dist/`; `.env`, backups e `.git` não são arquivos públicos.
 
-## Pendências deste checkout
+## Banco e modelos
 
-Nenhuma credencial administrativa do Supabase nem chave Gemini foi fornecida. Seus campos no `.env` estão vazios. As migrações/bucket precisam estar aplicados; mudar o local das chaves não cria tabelas no banco remoto. Os handlers permanecem disponíveis como adaptadores legados, mas o app agora usa o backend Vitra.
+As migrações/bucket precisam estar aplicados; mudar o local das chaves não cria tabelas. A migração `202610040007_vit.sql` foi confirmada pelo titular, e as tabelas foram verificadas por leitura remota sem retornar registros pessoais. Os testes de IA usam mocks; essa verificação não confirma faturamento nem disponibilidade do modelo na conta Google.
+
+`GEMINI_MODEL_VIT` escolhe o modelo do assistente; se vazio, usa `GEMINI_MODEL` e depois o padrão do provedor. Os overrides MEAL, BODY e COACH permanecem independentes. Todas as chaves continuam no `.env` do backend; reinicie o processo para carregar alterações. Os adaptadores legados existem, mas o app chama `/api`, incluindo `/api/vit`.

@@ -1,5 +1,14 @@
 # Alterações
 
+## 2026-10-04 — VIT com conversas e memórias
+
+- Menu VIT no computador e celular, com histórico paginado e memórias confirmadas/editáveis/desativáveis no Supabase.
+- Contexto carregado no servidor: registros recentes, orçamento diário, histórico e preferências escolhidas. Refeições, treinos e metas não são alterados automaticamente.
+- Consentimento específico, idade adulta, quota compartilhada e fotos próprias opcionais pelo pipeline corporal privado, sem inferências clínicas.
+- Migração nova idempotente: RLS por titular, mensagens somente pelo backend, turno atômico/idempotente e exclusão por cascata. Criação confirmada pelo titular e tabelas verificadas por consulta remota sem linhas.
+- Chaves continuam no `.env`; override opcional `GEMINI_MODEL_VIT`, rota `/api/vit` e backup JSON v4 com conversas/memórias.
+- Validação: 163 testes, build, checagem Deno, 28 verificações SQL/RLS isoladas e smoke HTTP de backend/proxy/arquivos privados. Provedor sempre simulado; nenhuma chamada real de IA ou gravação remota de teste.
+
 ## 2026-10-04 — Gasto, déficit e refeições por texto
 
 - Snapshot de gasto MET por treino/cardio, com peso/duração/intensidade e rateio por exercícios concluídos.

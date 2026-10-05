@@ -11,7 +11,7 @@
     "dev:web": "vite --host 0.0.0.0",
     "api": "deno run --env-file=.env --allow-env --allow-net --allow-read=dist server/main.ts",
     "start": "npm run api",
-    "check:server": "deno check server/main.ts supabase/functions/analyze-meal/index.ts supabase/functions/analyze-body-photos/index.ts supabase/functions/coach/index.ts supabase/functions/health-steps/index.ts supabase/functions/delete-account/index.ts"
+    "check:server": "deno check server/main.ts supabase/functions/analyze-meal/index.ts supabase/functions/analyze-body-photos/index.ts supabase/functions/coach/index.ts supabase/functions/health-steps/index.ts supabase/functions/delete-account/index.ts supabase/functions/vit/index.ts"
   },
   "keywords": [],
   "author": "",

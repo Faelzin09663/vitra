@@ -32,7 +32,7 @@ Respostas bloqueadas, truncadas, com JSON/campos inválidos ou pensamentos são 
 
 ALLOWED_ORIGINS lista origens exatas separadas por vírgula, incluindo http://localhost:5173 e domínio publicado, sem barra final. Sem configuração, origens de navegador são recusadas. CORS não é autenticação: chamadas sem Origin ainda exigem JWT e consentimento. Preflight aceita só POST/cabeçalhos conhecidos.
 
-`consume_ai_request` e `ai_quota_settings` são acessíveis apenas por service_role; clientes não leem/zeram quotas. Limites padrão: meal 20 por hora UTC; body_photo 5 por dia UTC; coach/chat juntos 30 por hora UTC. Tipos desconhecidos são recusados. Limites podem ser alterados administrativamente em ai_quota_settings. O wrapper consume_meal_analysis compartilha a quota nova e mantém clientes já publicados funcionando. Contadores antigos são copiados com greatest para não ganhar nova franquia no deploy. O upsert é atômico.
+`consume_ai_request` e `ai_quota_settings` são acessíveis apenas por service_role; clientes não leem/zeram quotas. Limites padrão: meal 20 por hora UTC; body_photo 5 por dia UTC; VIT/coach/chat juntos 30 por hora UTC. Tipos desconhecidos são recusados. Limites podem ser alterados administrativamente em ai_quota_settings. O wrapper consume_meal_analysis compartilha a quota nova e mantém clientes já publicados funcionando. Contadores antigos são copiados com greatest para não ganhar nova franquia no deploy. O upsert é atômico.
 
 O job horário existente limpa somente buckets com mais de sete dias nas quotas antigas, novas e de passos. Não remove registros de saúde. As rotas de corpo e coach exigem o backend Vitra ativo e configurado.
 
@@ -75,10 +75,20 @@ O contexto é montado com cliente Supabase autenticado pelo JWT, em janela de 90
 
 Perguntas são delimitadas como JSON de dados, sem ferramentas nem escrita. Classificação aceita somente best_lift, avg_nutrient, trend_weight, workouts_count, habit_streak e out_of_scope. Parâmetros, datas e IDs do catálogo são validados; nunca se executa SQL do modelo. A segunda chamada recebe somente o resultado numérico. Schemas fechados e checagem de números sem referência rejeitam respostas inválidas; linguagem natural ainda pode interpretar dados incorretamente. A interface mostra origem, período e quantidade. Aplicar abre formulário e só escreve depois de confirmação explícita.
 
-Consentimento geral versão 2 e idade adulta verificados no servidor. Quota compartilhada de coach/chat usa o mesmo controle atômico da fase 1. Plano pago obrigatório. O chat não persiste por padrão.
+Consentimento geral versão 2 e idade adulta verificados no servidor. Quota compartilhada de coach/chat usa o mesmo controle atômico da fase 1. Plano pago obrigatório. O chat numérico antigo não persiste por padrão; o VIT usa histórico próprio, conforme abaixo.
 
 ## Exclusão de conta e validação final
 
 `delete-account` não aceita um user_id no corpo. Valida JWT, confirmação textual e senha atual pelo Auth; verifica que a reautenticação pertence ao mesmo usuário. Service role existe somente no servidor para remover arquivos sob o prefixo próprio e excluir o usuário; FKs removem os registros por cascata. Arquivos são apagados antes da conta. Se uma operação falhar, os passos já concluídos não são desfeitos; exporte primeiro e tente novamente. Nunca registrar senha ou tokens. RLS não protege contra alguém com acesso à conta do titular ou ao painel administrativo.
 
 Os testes PostgreSQL/WASM aplicam as migrações novas duas vezes, verificam isolamento SELECT/INSERT/UPDATE/DELETE, vínculo de hábitos, fotos/análises, transferência de titular e cascata de conta. O esquema Storage é uma fixture; a API de URLs assinadas/upload e o Auth administrativo precisam de teste remoto com duas contas de teste. Sem promessa de validação de serviços não acessados.
+
+## Conversas e memórias do VIT
+
+Consentimento `vit_consent` versão 1 e idade adulta são lidos no servidor. O backend deriva o titular do JWT e monta o contexto por RLS: resumo de até 90 dias, orçamento calórico de hoje, últimas 16 mensagens e até 20 memórias ativas. O cliente envia somente conversa, requestId, pergunta e ID de foto opcional. E-mails no texto enviado ao provedor são omitidos; outros dados pessoais escritos voluntariamente não são automaticamente anonimizados.
+
+Mensagens são somente leitura para clientes autenticados; apenas o servidor grava um turno por `save_vit_turn`, validando conversa/foto do titular. Pergunta e resposta são persistidas numa transação. Uma repetição concluída retorna a resposta salva e não consome nova quota; chamadas concorrentes podem consumir mais de uma análise antes do bloqueio transacional, mas não duplicam o turno. Os schemas e o limite de tamanho são validados antes de gravar.
+
+Memórias só são criadas manualmente ou ao confirmar uma sugestão. É possível editar, desativar e apagar. Elas são independentes das conversas. Sugestões não alteram refeições, treinos ou metas. Fotos passam pelo pipeline corporal com consentimento, titular, quota, preparação sem EXIF e resposta validada; o VIT recebe observações, sem uma segunda transmissão da imagem. A análise pode errar e não estima gordura, peso, diagnóstico ou aparência desejável.
+
+Apagar conversa remove suas mensagens; memórias e fotos têm controles próprios. Excluir a conta remove as três tabelas por cascata. O backup v4 contém conversas, mensagens e memórias, sem chaves/tokens nem bytes de imagens. Texto removido de uma conversa já enviada não pode ser retirado retroativamente do processamento do provedor.

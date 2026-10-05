@@ -1,6 +1,7 @@
 import { EnergyPanel } from "./components/EnergyPanel";
 import React from "react";
 import {
+  Bot,
   House,
   Dumbbell,
   Utensils,
@@ -51,6 +52,7 @@ import { ProfilePanel } from "./components/ProfilePanel";
 import { ModalDialog } from "./components/ModalDialog";
 import { AccountData } from "./components/AccountData";
 import { FeatureSkeleton } from "./components/FeatureSkeleton";
+const VitPanel = React.lazy(() => import("./components/VitPanel").then(m => ({default:m.VitPanel})));
 const ProgressPage = React.lazy(() => import("./pages/ProgressPage"));
 const TrainingPage = React.lazy(() => import("./pages/TrainingPage"));
 const DailyWellbeing = React.lazy(() =>
@@ -168,6 +170,7 @@ export default function App({
     { name: "Treinos", icon: Dumbbell },
     { name: "Alimentação", icon: Utensils },
     { name: "Evolução", icon: TrendingUp },
+    { name: "VIT", icon: Bot },
   ];
   const exportData = async () => {
     try {
@@ -395,7 +398,7 @@ export default function App({
                     ? "Seu próximo passo começa aqui."
                     : page === "Alimentação"
                       ? "Nutra sua melhor versão."
-                      : page === "Perfil"
+                      : page === "VIT" ? "Um objetivo, uma conversa de cada vez." : page === "Perfil"
                         ? "Seu perfil, seu ritmo."
                         : "Cada passo conta."}
                 {page === "Hoje" && <span className="sun">☀</span>}
@@ -752,6 +755,7 @@ export default function App({
               />
             </React.Suspense>
           )}
+          {page === 'VIT' && <React.Suspense fallback={<FeatureSkeleton/>}><VitPanel store={d} userId={user.id} beforeAsk={flush} onConsent={value=>updateAndFlush({preferences:{...d.preferences,vit_consent:value}})} onBodyConsent={value=>updateAndFlush({preferences:{...d.preferences,body_consent:value}})}/></React.Suspense>}
           {page === "Perfil" && (
             <>
               <AccountData

@@ -24,6 +24,7 @@ Supabase → SQL Editor → New query. Abra cada arquivo local abaixo, copie o c
 8. `202610040004_session_tools.sql` — desconforto.
 9. `202610040005_body_progress.sql` — medidas/fotos/análises/Storage.
 10. `202610040006_checkins_habits.sql` — check-ins/hábitos.
+11. `202610040007_vit.sql` — conversas, mensagens e memórias do VIT.
 
 Os arquivos ficam em `supabase/migrations/`. Não altere migrações antigas e não apague tabelas para resolver erro. Guarde a mensagem de erro se alguma falhar.
 
@@ -40,11 +41,11 @@ Abra `.env` na raiz do Vitra. Todas as chaves ficam nele, sem cadastrar Secrets 
 - VITE_SUPABASE_URL e VITE_SUPABASE_PUBLISHABLE_KEY: conexão pública existente, preservada neste checkout.
 - SUPABASE_SECRET_KEY: copie/crie a Secret key em Supabase > Settings > API Keys > Publishable and secret API keys e cole somente no .env. Alternativa legada: SUPABASE_SERVICE_ROLE_KEY.
 - GEMINI_API_KEY: chave Google criada no passo 1.
-- GEMINI_MODEL: gemini-3.1-flash-lite; overrides MEAL/BODY/COACH são opcionais.
+- GEMINI_MODEL: gemini-3.1-flash-lite; overrides MEAL/BODY/COACH/VIT são opcionais.
 - ALLOWED_ORIGINS: origens exatas do frontend, incluindo o domínio HTTPS publicado, sem barra final.
 - API_PORT: 8787 por padrão. VITE_API_URL: /api para app e backend juntos.
 
-Não adicione prefixo VITE_ a uma chave privada. Não envie chaves no chat. Esses campos privados estão vazios até você preenchê-los. O modelo padrão tem encerramento anunciado em 07/05/2027; revise [descontinuações oficiais](https://ai.google.dev/gemini-api/docs/deprecations).
+Não adicione prefixo VITE_ a uma chave privada. Não envie chaves no chat. Preencha os campos privados somente no seu ambiente. O modelo padrão tem encerramento anunciado em 07/05/2027; revise [descontinuações oficiais](https://ai.google.dev/gemini-api/docs/deprecations).
 
 ## 6. Executar o backend e o app
 
@@ -77,8 +78,11 @@ Verifique:
 - Foto envia somente JPEG reencodado; URL assinada funciona e expira; outra conta não vê arquivo/registro.
 - Sem consentimento/adulto, IA é recusada; refeição é editável e só salva na confirmação.
 - Análise corporal aceita fotos próprias do mesmo ângulo; comparação cautelosa e sem nota do corpo.
-- Coach mostra período/origem; Aplicar abre revisão; chat não altera dados nem grava conversa.
+- Coach mostra período/origem; Aplicar abre revisão; o chat numérico antigo não altera dados nem grava conversa.
+- VIT: autorize na própria tela, envie texto, confirme uma memória, abra outra conversa e confira o contexto; voltar/recarregar mantém o histórico. Apagar conversa não apaga memória/foto.
 - Backup inclui todas as tabelas; baixe fotos separadamente.
 - Exclusão de conta: confirme apenas numa conta de teste após exportar; senha incorreta deve recusar, conta/fotos próprias devem desaparecer, outra conta deve permanecer.
+
+A migração do VIT já foi confirmada pelo titular neste checkout; uma consulta remota sem linhas confirmou as três tabelas. Não é necessário repetir a criação. Veja [VIT.md](VIT.md).
 
 No iPhone, valide safe areas, tema, teclado, botões e timer após bloquear/reabrir. Timer na tela bloqueada/Live Activity requer aplicativo nativo; o webapp não promete esse recurso. Passos do Saúde precisam do Atalhos conforme INTEGRATIONS.md. Não há push real nesta versão.

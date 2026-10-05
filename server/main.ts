@@ -7,6 +7,7 @@ import { createBodyEndpoint } from "../supabase/functions/analyze-body-photos/ru
 import { createCoachEndpoint } from "../supabase/functions/coach/runtime.ts";
 import { createHealthEndpoint } from "../supabase/functions/health-steps/runtime.ts";
 import { createDeleteEndpoint } from "../supabase/functions/delete-account/runtime.ts";
+import { createVitEndpoint } from "../supabase/functions/vit/runtime.ts";
 import { createRouter } from "./router.ts";
 import { createStaticHandler } from "./static.ts";
 
@@ -27,6 +28,7 @@ const router = createRouter(
     "analyze-meal": createMealEndpoint,
     "analyze-body-photos": createBodyEndpoint,
     coach: createCoachEndpoint,
+    vit: createVitEndpoint,
     "health-steps": createHealthEndpoint,
     "delete-account": createDeleteEndpoint,
   },
