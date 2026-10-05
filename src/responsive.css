@@ -265,3 +265,7 @@ footer > span:last-child { margin-left: 0; width: 100%; }
 .ai-consent button { min-height: 48px; }
 .meal-food-editor { border: 1px solid var(--border); border-radius: 12px; padding: 12px; min-width: 0; }
 .meal-food-editor legend { padding: 0 6px; font-size: 14px; }
+
+.calorie-preview { margin-top: 14px; padding: 14px; background: var(--blue-bg); border: 1px solid var(--border-accent); border-radius: 10px; color: var(--text-secondary); }
+.calorie-preview strong { font-size: 14px; }
+.calorie-preview p { margin: 7px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-muted); }

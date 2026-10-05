@@ -1,5 +1,11 @@
 # Alterações
 
+## 2026-10-04 — Estimativa no perfil
+
+- Perfil mostra os dados faltantes para calorias automáticas e a estimativa junto ao botão de salvar, inclusive no celular.
+- Mensagem de erro antiga desaparece ao editar campos; peso, altura, idade adulta, sexo e atividade usam validação consistente.
+- Testes verificam formulário incompleto, correção dos campos, prévia sem salvar e recálculo após mudar o peso. Perfil manual continua aceitando dados parciais.
+
 ## 2026-10-04 — Configuração centralizada em .env
 
 - Backend Vitra com Deno, API `/api` e build servido pelo mesmo processo em produção.
