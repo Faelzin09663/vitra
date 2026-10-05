@@ -44,7 +44,7 @@ Em um servidor com processo persistente, execute `npm run build` e `npm start` c
 
 Logs legados permanecem em `user_data` e `daily_records`, sem migração destrutiva de datas ou histórico. Novos registros usam tabelas próprias com RLS por titular e datas ISO. Sessões continuam por timestamps.
 
-O salvamento do painel é serializado, com estado de sincronização e repetição. Offline fica em memória: mantenha a página aberta até sincronizar. Entre dispositivos, o último documento salvo prevalece, sem mesclagem. Tabelas novas usam upsert por titular/data ou ID.
+O salvamento do painel é serializado, com estado de sincronização e repetição. Criar, editar, duplicar, excluir e importar treinos aguarda confirmação do Supabase. Alterações pendentes têm uma cópia temporária no navegador, separada por conta, para recuperação depois de fechar e reabrir o app; a cópia é apagada após confirmação do banco. Se o navegador bloquear esse armazenamento, o app informa que deve permanecer aberto até salvar. Na recuperação, mudanças de treinos são mescladas por ID com a biblioteca remota, e consumo antigo não substitui o dia/semana atual. Edições simultâneas entre dispositivos ainda seguem o último documento salvo; não há controle global de concorrência. Tabelas novas usam upsert por titular/data ou ID.
 
 Backup v4 inclui todas as tabelas novas, registros arquivados e painel, com paginação. Não inclui tokens, credenciais ou bytes de fotos; baixe as imagens separadamente. Importação de backup ainda não existe.
 

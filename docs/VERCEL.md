@@ -28,6 +28,8 @@ As origens HTTPS de `VERCEL_URL`, `VERCEL_PROJECT_PRODUCTION_URL` e `VERCEL_BRAN
 
 Depois do deploy, abrir `/api/vit` por GET deve retornar JSON com **Método não permitido**, status 405. POST sem JWT deve retornar **Entre na sua conta**, status 401, quando as credenciais estão configuradas. Essas verificações não chamam IA. Uma página HTML/404 da Vercel indica que as funções ainda não foram publicadas; confirme o commit, pasta raiz e logs de build. Um 503 de configuração indica variáveis ausentes nesse ambiente/deploy.
 
+Os registros do app publicado (treinos, perfil, alimentação, evolução e demais tabelas) continuam no mesmo projeto Supabase indicado pelas variáveis públicas, com RLS por conta. Reabrir o site carrega esse banco; não depende da memória de uma função Vercel. A correção de persistência de treinos não requer migração nem um segundo banco: publique o novo commit para receber a confirmação de salvamento e a recuperação de pendências no navegador.
+
 Se aparecer **Rota indisponível** no localhost, encerre o ambiente antigo e rode `npm run dev` novamente. O comando agora observa alterações do backend para evitar uma lista de rotas desatualizada. Ao mudar `.env`, ainda é necessário reiniciar o comando para carregar os valores novos.
 
 Schemas, consentimentos, quotas, RLS, validação de fotos e persistência do VIT permanecem nos handlers existentes. Testes de IA usam mocks; publicação de funções não confirma acesso/faturamento do modelo Google nem autoriza chamadas reais nos testes.

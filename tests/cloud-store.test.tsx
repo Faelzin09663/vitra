@@ -5,6 +5,8 @@ import { useCloudStore } from '../src/lib/useCloudStore';
 const db = vi.hoisted(() => ({ from: vi.fn(), select: vi.fn(), eq: vi.fn(), maybeSingle: vi.fn(), upsert: vi.fn() }));
 vi.mock('../src/lib/supabase', () => ({ supabase: { from: db.from } }));
 beforeEach(() => {
+  vi.clearAllMocks();
+  localStorage.clear();
   db.from.mockReturnValue(db); db.select.mockReturnValue(db); db.eq.mockReturnValue(db);
   db.maybeSingle.mockResolvedValue({ data: { data: { water: 500 } }, error: null });
   db.upsert.mockResolvedValue({ error: null });

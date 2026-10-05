@@ -16,6 +16,8 @@ Consentimento: `preferences.ai_consent = { version, grantedAt }`, com versão at
 
 O JSON do painel ainda usa último salvamento entre dispositivos: um painel antigo pode substituir preferências. Evite editar simultaneamente; controle de concorrência/revogação resistente a snapshots antigos será necessário antes de múltiplos dispositivos concorrentes. A função sempre verifica o estado atualmente persistido.
 
+Alterações ainda não confirmadas do painel ficam temporariamente em `localStorage`, na chave `vitra:pending-store:v1:<user_id>`. A recuperação só lê a chave da conta autenticada depois de carregar seu painel por RLS; uma falha de leitura não grava os valores iniciais. A cópia contém dados do painel (incluindo perfil/registros/consentimentos), sem tokens, chaves privadas ou bytes de fotos. É removida após confirmação do Supabase e, portanto, antes da saída/exclusão de conta bem-sucedida. Não é um backup definitivo: limpar dados do navegador remove as pendências. Fechamento abrupto durante uma falha de rede recupera os dados na próxima abertura quando esse armazenamento está disponível. A mesclagem por ID na recuperação da biblioteca de treinos não oferece controle de concorrência entre duas sessões ativas.
+
 ## Privacidade e plano do Gemini
 
 **Plano pago com faturamento ativo no projeto Google Cloud é obrigatório para o Vitra**, por tratar dados de saúde/fotos. Não basta criar uma chave gratuita.

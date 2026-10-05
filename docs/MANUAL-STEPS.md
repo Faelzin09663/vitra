@@ -80,6 +80,7 @@ Verifique:
 - Análise corporal aceita fotos próprias do mesmo ângulo; comparação cautelosa e sem nota do corpo.
 - Coach mostra período/origem; Aplicar abre revisão; o chat numérico antigo não altera dados nem grava conversa.
 - VIT: autorize na própria tela, envie texto, confirme uma memória, abra outra conversa e confira o contexto; voltar/recarregar mantém o histórico. Apagar conversa não apaga memória/foto.
+- Persistência de treinos no site publicado: crie dois modelos para o mesmo grupo muscular, aguarde o editor fechar e o estado “Tudo salvo na sua conta”, feche/reabra o app e confirme nome, dias e exercícios. Com rede interrompida, o editor mostra falha e mantém o rascunho; ao reabrir com conexão, a pendência da mesma conta é recuperada e enviada ao Supabase. Não limpar os dados do navegador durante esse teste. Também conferir que outra conta não recebe a biblioteca pendente.
 - Backup inclui todas as tabelas; baixe fotos separadamente.
 - Exclusão de conta: confirme apenas numa conta de teste após exportar; senha incorreta deve recusar, conta/fotos próprias devem desaparecer, outra conta deve permanecer.
 

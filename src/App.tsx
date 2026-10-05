@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import type { User } from "@supabase/supabase-js";
 import { useCloudStore } from "./lib/useCloudStore";
+import { recoverPendingStore } from "./lib/storeRecovery";
 import {
   createInitialStore,
   normalizeStore,
@@ -79,7 +80,7 @@ export default function App({
     retry,
     flush,
     updateAndFlush,
-  } = useCloudStore<Store>(user.id, defaults, normalizeStore);
+  } = useCloudStore<Store>(user.id, defaults, normalizeStore, recoverPendingStore);
   const [signingOut, setSigningOut] = React.useState(false);
   const fullName =
     d.profile.fullName || String(user.user_metadata.full_name || "Meu perfil");
@@ -697,8 +698,9 @@ export default function App({
                 onBegin={() => beginWorkout()}
                 onAdd={() => setModal("exercício")}
                 onNotice={setNotice}
-                onSave={(w) => update(saveWorkout(d, w))}
-                onRemove={(id) => update(removeWorkout(d, id))}
+                onSave={(w) => updateAndFlush(current => saveWorkout(current, w))}
+                onRemove={(id) => updateAndFlush(current => removeWorkout(current, id))}
+                onImport={(workouts) => updateAndFlush({ workouts })}
               />
             </React.Suspense>
           )}

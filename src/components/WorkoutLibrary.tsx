@@ -26,16 +26,28 @@ export function WorkoutLibrary({
   onImport,
 }: {
   userId?: string;
-  onImport?: (workouts: Workout[]) => void;
+  onImport?: (workouts: Workout[]) => void | Promise<void>;
   store: Store;
   onSelect: (id: string) => void;
-  onSave: (workout: Workout) => void;
-  onRemove: (id: string) => void;
+  onSave: (workout: Workout) => void | Promise<void>;
+  onRemove: (id: string) => void | Promise<void>;
 }) {
   const [draft, setDraft] = React.useState<Workout | null>(null),
     [removeId, setRemoveId] = React.useState(""),
     [browse, setBrowse] = React.useState(false),
-    [picker, setPicker] = React.useState<number | null>(null);
+    [picker, setPicker] = React.useState<number | null>(null),
+    [saving, setSaving] = React.useState(false),
+    [saveError, setSaveError] = React.useState('');
+  const savingRef = React.useRef(false);
+  async function confirmChange(action: () => void | Promise<void>, done: () => void) {
+    if (savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    setSaveError('');
+    try { await action(); done(); }
+    catch { setSaveError('Não foi possível salvar o treino na sua conta. Confira a conexão e tente salvar novamente.'); }
+    finally { savingRef.current = false; setSaving(false); }
+  }
   const selected = store.activeWorkout?.workoutId || store.selectedWorkoutId;
   const changeExercise = (index: number, patch: Partial<Exercise>) =>
     setDraft((d) =>
@@ -63,7 +75,7 @@ export function WorkoutLibrary({
   function save(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     if (!draft) return;
-    onSave({
+    const workout = {
       ...draft,
       name: draft.name.trim(),
       focus: draft.focus.trim(),
@@ -73,8 +85,8 @@ export function WorkoutLibrary({
         name: ex.name.trim(),
         reps: ex.reps.trim(),
       })),
-    });
-    setDraft(null);
+    };
+    void confirmChange(() => onSave(workout), () => setDraft(null));
   }
   return (
     <section className="workout-library">
@@ -195,6 +207,7 @@ export function WorkoutLibrary({
           label="Configurar treino"
           className="workout-editor feature-panel"
           onClose={() => {
+            if (savingRef.current) return;
             setDraft(null);
             setPicker(null);
           }}
@@ -207,6 +220,7 @@ export function WorkoutLibrary({
             </h2>
             <button
               aria-label="Fechar"
+              disabled={saving}
               onClick={() => {
                 setDraft(null);
                 setPicker(null);
@@ -241,209 +255,211 @@ export function WorkoutLibrary({
             </>
           ) : (
             <form onSubmit={save}>
-              <label>
-                Nome do treino
-                <input
-                  value={draft.name}
-                  onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                  placeholder="Ex.: Peito 2 — sexta"
-                  minLength={2}
-                  maxLength={100}
-                  required
-                />
-              </label>
-              <label>
-                Foco do treino
-                <input
-                  value={draft.focus}
-                  onChange={(e) =>
-                    setDraft({ ...draft, focus: e.target.value })
-                  }
-                  placeholder="Ex.: Peito e bíceps"
-                  maxLength={120}
-                />
-              </label>
-              <label className="weekday-label">
-                <span>
-                  <CalendarDays size={15} />
-                  Dias da semana (opcional)
-                </span>
-              </label>
-              <div className="weekday-selector">
-                {days.map((day, i) => (
+              <fieldset disabled={saving} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+                <label>
+                  Nome do treino
+                  <input
+                    value={draft.name}
+                    onChange={(e) => setDraft({ ...draft, name: e.target.value })}
+                    placeholder="Ex.: Peito 2 — sexta"
+                    minLength={2}
+                    maxLength={100}
+                    required
+                  />
+                </label>
+                <label>
+                  Foco do treino
+                  <input
+                    value={draft.focus}
+                    onChange={(e) =>
+                      setDraft({ ...draft, focus: e.target.value })
+                    }
+                    placeholder="Ex.: Peito e bíceps"
+                    maxLength={120}
+                  />
+                </label>
+                <label className="weekday-label">
+                  <span>
+                    <CalendarDays size={15} />
+                    Dias da semana (opcional)
+                  </span>
+                </label>
+                <div className="weekday-selector">
+                  {days.map((day, i) => (
+                    <button
+                      type="button"
+                      key={day}
+                      aria-pressed={draft.weekdays.includes(i)}
+                      className={draft.weekdays.includes(i) ? "selected" : ""}
+                      onClick={() =>
+                        setDraft({
+                          ...draft,
+                          weekdays: draft.weekdays.includes(i)
+                            ? draft.weekdays.filter((v) => v !== i)
+                            : [...draft.weekdays, i].sort(),
+                        })
+                      }
+                    >
+                      {day}
+                    </button>
+                  ))}
+                </div>
+                <button type="button" onClick={() => setPicker(-1)}>
+                  Escolher na biblioteca
+                </button>
+                <div className="section-heading editor-exercises-heading">
+                  <h2>Exercícios</h2>
                   <button
                     type="button"
-                    key={day}
-                    aria-pressed={draft.weekdays.includes(i)}
-                    className={draft.weekdays.includes(i) ? "selected" : ""}
+                    className="text"
                     onClick={() =>
                       setDraft({
                         ...draft,
-                        weekdays: draft.weekdays.includes(i)
-                          ? draft.weekdays.filter((v) => v !== i)
-                          : [...draft.weekdays, i].sort(),
+                        exercises: [
+                          ...draft.exercises,
+                          { name: "", sets: 3, reps: "8–12", restSeconds: 60 },
+                        ],
                       })
                     }
                   >
-                    {day}
+                    <Plus size={15} />
+                    Adicionar exercício
                   </button>
-                ))}
-              </div>
-              <button type="button" onClick={() => setPicker(-1)}>
-                Escolher na biblioteca
-              </button>
-              <div className="section-heading editor-exercises-heading">
-                <h2>Exercícios</h2>
-                <button
-                  type="button"
-                  className="text"
-                  onClick={() =>
-                    setDraft({
-                      ...draft,
-                      exercises: [
-                        ...draft.exercises,
-                        { name: "", sets: 3, reps: "8–12", restSeconds: 60 },
-                      ],
-                    })
-                  }
-                >
-                  <Plus size={15} />
-                  Adicionar exercício
-                </button>
-              </div>
-              {!draft.exercises.length && (
-                <p className="estimate-note">
-                  Adicione pelo menos um exercício antes de salvar.
-                </p>
-              )}
-              {draft.exercises.map((ex, i) => (
-                <div className="editor-exercise" key={i}>
-                  <div className="editor-exercise-top">
-                    <span>Exercício {i + 1}</span>
-                    <div>
-                      <button
-                        type="button"
-                        aria-label={`Subir exercício ${i + 1}`}
-                        disabled={i === 0}
-                        onClick={() => move(i, -1)}
-                      >
-                        <ArrowUp size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Descer exercício ${i + 1}`}
-                        disabled={i === draft.exercises.length - 1}
-                        onClick={() => move(i, 1)}
-                      >
-                        <ArrowDown size={14} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Remover exercício ${i + 1}`}
-                        onClick={() =>
-                          setDraft({
-                            ...draft,
-                            exercises: draft.exercises.filter(
-                              (_, j) => j !== i,
-                            ),
-                          })
-                        }
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                </div>
+                {!draft.exercises.length && (
+                  <p className="estimate-note">
+                    Adicione pelo menos um exercício antes de salvar.
+                  </p>
+                )}
+                {draft.exercises.map((ex, i) => (
+                  <div className="editor-exercise" key={i}>
+                    <div className="editor-exercise-top">
+                      <span>Exercício {i + 1}</span>
+                      <div>
+                        <button
+                          type="button"
+                          aria-label={`Subir exercício ${i + 1}`}
+                          disabled={i === 0}
+                          onClick={() => move(i, -1)}
+                        >
+                          <ArrowUp size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Descer exercício ${i + 1}`}
+                          disabled={i === draft.exercises.length - 1}
+                          onClick={() => move(i, 1)}
+                        >
+                          <ArrowDown size={14} />
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Remover exercício ${i + 1}`}
+                          onClick={() =>
+                            setDraft({
+                              ...draft,
+                              exercises: draft.exercises.filter(
+                                (_, j) => j !== i,
+                              ),
+                            })
+                          }
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <button type="button" onClick={() => setPicker(i)}>
-                    Vincular pela biblioteca
-                  </button>
-                  <label>
-                    Nome do exercício
-                    <input
-                      value={ex.name}
-                      onChange={(e) =>
-                        changeExercise(i, {
-                          name: e.target.value,
-                          exerciseId: undefined,
-                        })
-                      }
-                      minLength={2}
-                      maxLength={120}
-                      required
-                    />
-                  </label>
-                  <div className="form-grid">
+                    <button type="button" onClick={() => setPicker(i)}>
+                      Vincular pela biblioteca
+                    </button>
                     <label>
-                      Séries
+                      Nome do exercício
                       <input
-                        type="number"
-                        value={ex.sets}
-                        min="1"
-                        max="20"
-                        required
-                        onChange={(e) =>
-                          changeExercise(i, { sets: Number(e.target.value) })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Repetições
-                      <input
-                        value={ex.reps}
-                        maxLength={30}
-                        required
-                        onChange={(e) =>
-                          changeExercise(i, { reps: e.target.value })
-                        }
-                      />
-                    </label>
-                    <label>
-                      Descanso (s)
-                      <input
-                        type="number"
-                        value={ex.restSeconds ?? 60}
-                        min="0"
-                        max="600"
-                        required
+                        value={ex.name}
                         onChange={(e) =>
                           changeExercise(i, {
-                            restSeconds: Number(e.target.value),
+                            name: e.target.value,
+                            exerciseId: undefined,
                           })
                         }
+                        minLength={2}
+                        maxLength={120}
+                        required
                       />
                     </label>
+                    <div className="form-grid">
+                      <label>
+                        Séries
+                        <input
+                          type="number"
+                          value={ex.sets}
+                          min="1"
+                          max="20"
+                          required
+                          onChange={(e) =>
+                            changeExercise(i, { sets: Number(e.target.value) })
+                          }
+                        />
+                      </label>
+                      <label>
+                        Repetições
+                        <input
+                          value={ex.reps}
+                          maxLength={30}
+                          required
+                          onChange={(e) =>
+                            changeExercise(i, { reps: e.target.value })
+                          }
+                        />
+                      </label>
+                      <label>
+                        Descanso (s)
+                        <input
+                          type="number"
+                          value={ex.restSeconds ?? 60}
+                          min="0"
+                          max="600"
+                          required
+                          onChange={(e) =>
+                            changeExercise(i, {
+                              restSeconds: Number(e.target.value),
+                            })
+                          }
+                        />
+                      </label>
+                    </div>
                   </div>
-                </div>
-              ))}
-              <button
-                className="primary submit"
-                disabled={!draft.exercises.length}
-              >
-                Salvar treino <Check size={16} />
-              </button>
+                ))}
+                <button
+                  className="primary submit"
+                  disabled={!draft.exercises.length}
+                >
+                  {saving ? 'Salvando treino…' : 'Salvar treino'} <Check size={16} />
+                </button>
+              </fieldset>
+              {saveError && <p role="alert">{saveError}</p>}
             </form>
           )}
         </ModalDialog>
       )}
       {removeId && (
-        <ModalDialog label="Excluir treino" onClose={() => setRemoveId("")}>
+        <ModalDialog label="Excluir treino" onClose={() => { if (!savingRef.current) setRemoveId(''); }}>
           <h2>Excluir este modelo de treino?</h2>
           <p className="estimate-note">
             Os treinos concluídos e seu histórico continuarão salvos.
           </p>
           <div className="confirm-actions">
-            <button className="text" onClick={() => setRemoveId("")}>
+            <button className="text" disabled={saving} onClick={() => setRemoveId("")}>
               Cancelar
             </button>
             <button
               className="primary"
-              onClick={() => {
-                onRemove(removeId);
-                setRemoveId("");
-              }}
+              disabled={saving}
+              onClick={() => void confirmChange(() => onRemove(removeId), () => setRemoveId(''))}
             >
-              Excluir modelo
+              {saving ? 'Salvando…' : 'Excluir modelo'}
             </button>
           </div>
+          {saveError && <p role="alert">{saveError}</p>}
         </ModalDialog>
       )}
     </section>

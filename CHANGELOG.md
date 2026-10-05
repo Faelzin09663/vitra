@@ -1,5 +1,14 @@
 # Alterações
 
+## 2026-10-05 — Persistência de treinos ao fechar o app
+
+- Criar, editar, duplicar, excluir e importar modelos aguarda confirmação do Supabase; falhas mantêm o editor/rascunho e permitem repetir sem duplicação.
+- Cópia temporária síncrona por conta recupera alterações que ainda não chegaram ao banco quando o app fecha; confirmação antiga não descarta uma alteração mais recente.
+- Recuperação aplica apenas campos alterados sobre a conta recém-carregada, mescla a biblioteca por ID e preserva consumo do novo dia/semana e sessão por timestamps.
+- `flush` aguarda também as alterações feitas durante uma gravação em andamento; os treinos usam a versão atual do estado ao salvar.
+- Supabase permanece o banco do localhost e do site Vercel, sem migração ou mudanças em registros remotos nesta correção. Documentação inclui privacidade da cópia temporária e validação no app publicado.
+- Validação: 184 testes com mocks, incluindo criação de vários treinos, fechamento/reabertura, interrupção antes do autosave, repetição após erro, isolamento por conta, gravações lentas e virada de dia/semana; build e checagem Deno aprovados.
+
 ## 2026-10-04 — Rotas VIT no localhost e Vercel
 
 - Lista compartilhada de endpoints evita divergência entre servidor local e publicação.

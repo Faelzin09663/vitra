@@ -30,9 +30,9 @@ export function ExerciseExplorer({
   selector = false,
 }: {
   userId: string;
-  onAdd: (ex: CatalogExercise) => void;
+  onAdd: (ex: CatalogExercise) => void | Promise<void>;
   workouts: Workout[];
-  onImport?: (workouts: Workout[]) => void;
+  onImport?: (workouts: Workout[]) => void | Promise<void>;
   selector?: boolean;
 }) {
   const custom = useRecords<Custom>("custom_exercises", userId, "created_at");
@@ -59,6 +59,17 @@ export function ExerciseExplorer({
     pattern: (pattern as Pattern) || undefined,
   });
   const preview = program ? importProgram(program, workouts, weekdays) : null;
+  async function addExercise(ex: CatalogExercise, done?: () => void) {
+    if (busy) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      await onAdd(ex);
+      setMessage(`${ex.name} adicionado ao treino.`);
+      done?.();
+    } catch { setMessage('Não foi possível salvar o exercício no treino. Confira a conexão e tente novamente.'); }
+    finally { setBusy(false); }
+  }
   async function createCustom(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setBusy(true);
@@ -91,8 +102,8 @@ export function ExerciseExplorer({
     }
     try {
       await custom.save({ id, data: entry });
+      await onAdd(entry);
       setCreate(false);
-      onAdd(entry);
       setMessage("Exercício personalizado salvo.");
     } catch (err) {
       setMessage((err as Error).message);
@@ -176,8 +187,7 @@ export function ExerciseExplorer({
                 <button
                   type="button"
                   onClick={() => {
-                    onAdd(ex);
-                    setMessage(`${ex.name} adicionado ao treino.`);
+                    void addExercise(ex);
                   }}
                 >
                   Adicionar ao treino
@@ -263,10 +273,8 @@ export function ExerciseExplorer({
           ))}
           <button
             className="primary"
-            onClick={() => {
-              onAdd(detail);
-              setDetail(null);
-            }}
+            disabled={busy}
+            onClick={() => void addExercise(detail, () => setDetail(null))}
           >
             Adicionar ao treino
           </button>
@@ -324,17 +332,22 @@ export function ExerciseExplorer({
           )}
           <button
             className="primary"
-            onClick={() => {
-              onImport?.(preview.workouts);
-              setProgram(null);
-              setMessage(
-                "Programa importado. Seus treinos anteriores foram mantidos.",
-              );
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setMessage('');
+              try {
+                await onImport?.(preview.workouts);
+                setProgram(null);
+                setMessage('Programa salvo na sua conta. Seus treinos anteriores foram mantidos.');
+              } catch { setMessage('Não foi possível salvar o programa. Confira a conexão e tente novamente.'); }
+              finally { setBusy(false); }
             }}
           >
-            Confirmar importação
+            {busy ? 'Salvando programa…' : 'Confirmar importação'}
           </button>
-          <button onClick={() => setProgram(null)}>Cancelar</button>
+          {message && <p role="alert">{message}</p>}
+          <button disabled={busy} onClick={() => setProgram(null)}>Cancelar</button>
         </ModalDialog>
       )}
       {create && (

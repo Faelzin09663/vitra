@@ -25,6 +25,7 @@ export default function TrainingPage({
   onNotice,
   onSave,
   onRemove,
+  onImport,
 }: {
   store: Store;
   userId: string;
@@ -32,8 +33,9 @@ export default function TrainingPage({
   onBegin: () => void;
   onAdd: () => void;
   onNotice: (text: string) => void;
-  onSave: (w: Store["workouts"][number]) => void;
-  onRemove: (id: string) => void;
+  onSave: (w: Store["workouts"][number]) => void | Promise<void>;
+  onRemove: (id: string) => void | Promise<void>;
+  onImport: (workouts: Store['workouts']) => void | Promise<void>;
 }) {
   const [gym, setGym] = React.useState(true),
     training = Boolean(store.activeWorkout),
@@ -56,7 +58,7 @@ export default function TrainingPage({
         <WorkoutLibrary
           store={store}
           userId={userId}
-          onImport={(workouts) => onChange({ workouts })}
+          onImport={onImport}
           onSelect={(id) => onChange({ selectedWorkoutId: id })}
           onSave={onSave}
           onRemove={onRemove}
