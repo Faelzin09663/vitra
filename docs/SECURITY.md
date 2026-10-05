@@ -47,6 +47,7 @@ Revogue em Conectar Saúde pelo Atalhos → Revogar. Gerar token novo substitui 
 - Todas as credenciais ficam no .env da raiz, ignorado pelo Git. `.env.example` lista somente nomes, campos vazios e padrões públicos.
 - Somente VITE_SUPABASE_* e VITE_API_URL chegam ao navegador. GEMINI_API_KEY e SUPABASE_SECRET_KEY são lidas exclusivamente pelo servidor Vitra. O nome legado SUPABASE_SERVICE_ROLE_KEY também é aceito.
 - Não são necessários Supabase Secrets ou deploy de Edge Functions. Os adaptadores antigos compartilham os handlers, mas o app chama /api.
+- Na Vercel, as funções Node leem as mesmas chaves privadas pelo ambiente do processo. Somente origens explícitas ou URLs de deploy fornecidas pelos metadados da plataforma entram no CORS; headers do visitante não autorizam uma origem. O `.env.vercel` privado fica fora do Git.
 - O servidor entrega apenas dist/, bloqueia arquivos ocultos e nunca encaminha erros internos. Não registra valores de ambiente, corpo, tokens ou senhas. Credenciais ausentes produzem mensagem fixa de configuração pendente.
 - Configurações .env.local anteriores foram guardadas como backups ignorados; somente o .env da raiz é usado pela API.
 

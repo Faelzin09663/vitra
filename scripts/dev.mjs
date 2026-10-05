@@ -38,6 +38,7 @@ const api = spawn(
   denoPath,
   [
     "run",
+    "--watch=server,supabase/functions,src/lib,src/data",
     "--env-file=.env",
     "--allow-env",
     "--allow-net",

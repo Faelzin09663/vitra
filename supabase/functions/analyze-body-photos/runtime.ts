@@ -1,6 +1,6 @@
 import { exercises } from "../../../src/data/exercises.ts";
 import { weeklyMuscleBalance } from "../../../src/lib/analytics/index.ts";
-import { createClient } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient } from "@supabase/supabase-js";
 import { createBodyHandler } from "../_shared/body-analysis-handler.ts";
 import {
   createGeminiProvider,

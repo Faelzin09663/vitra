@@ -1,5 +1,14 @@
 # Alterações
 
+## 2026-10-04 — Rotas VIT no localhost e Vercel
+
+- Lista compartilhada de endpoints evita divergência entre servidor local e publicação.
+- Desenvolvimento observa alterações do backend; ambiente local antigo reiniciado e rota `/api/vit` verificada diretamente e pelo proxy, sem chamada de IA.
+- Seis funções Node na Vercel com os mesmos handlers, chaves privadas no ambiente, CORS exato por configuração/metadados confiáveis e duração de 180 segundos.
+- Dependência Supabase portável por import map Deno/Edge e pacote npm no Node, mantendo autenticação, consentimentos, quotas e dados existentes.
+- `.env.vercel` privado atualizado para frontend e backend no mesmo domínio; TypeScript das funções integrado ao build e guia de publicação incluído.
+- Validação: 174 testes com mocks, build, checagem Deno e entrypoint executado no Node real sem autenticação/IA. Deploy remoto ainda exige as variáveis do ambiente e uma nova publicação.
+
 ## 2026-10-04 — Interface de chatbot do VIT
 
 - Conversas em uma área dedicada, histórico lateral no computador e painel de histórico no celular.

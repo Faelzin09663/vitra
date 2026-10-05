@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient } from "@supabase/supabase-js";
 import { createCoachHandler } from "../_shared/coach-handler.ts";
 import { adultConsent } from "../_shared/ai-consent.ts";
 import {

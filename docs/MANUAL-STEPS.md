@@ -63,7 +63,7 @@ npm run build
 npm start
 ```
 
-O servidor entrega `dist/` e `/api` pela mesma porta; publique por HTTPS num host que mantenha o processo ativo e instale as dependências incluindo o runtime Deno. Não é necessário publicar Edge Functions. Os handlers continuam verificando JWT/token, consentimentos e quotas no banco.
+O servidor Deno entrega `dist/` e `/api` pela mesma porta; publique por HTTPS num host que mantenha o processo ativo e instale as dependências incluindo o runtime Deno. Como alternativa, a Vercel publica frontend e funções Node de `api/`: siga [VERCEL.md](VERCEL.md), use `VITE_API_URL=/api` e cadastre as variáveis no projeto. Não é necessário publicar Edge Functions. Os handlers continuam verificando JWT/token, consentimentos e quotas no banco.
 
 ## 7. Publicar e testar o app
 

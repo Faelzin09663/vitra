@@ -932,6 +932,9 @@
     }
   },
   "workspace": {
+    "dependencies": [
+      "npm:@supabase/supabase-js@2.117.2"
+    ],
     "packageJson": {
       "dependencies": [
         "npm:@supabase/supabase-js@^2.117.2",

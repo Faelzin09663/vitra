@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient } from "@supabase/supabase-js";
 import { createDeleteAccountHandler } from "../_shared/delete-account-handler.ts";
 import { PublicError } from "../_shared/private-ai-handler.ts";
 import type { EnvReader } from "../_shared/server-env.ts";

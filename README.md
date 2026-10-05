@@ -30,7 +30,7 @@ npm run dev
 
 Todas as chaves ficam no **`.env` da raiz**, ignorado pelo Git. Use `.env.example` como modelo; neste checkout, a conexão pública existente foi preservada no `.env`. Preencha `SUPABASE_SECRET_KEY` e `GEMINI_API_KEY` no editor. Apenas variáveis `VITE_*` entram no navegador; nunca use esse prefixo em chaves privadas. A alternativa legada `SUPABASE_SERVICE_ROLE_KEY` também é aceita.
 
-`npm run dev` inicia frontend e backend juntos: Vite em 5173 (ou próxima porta livre) e API em 8787, com proxy `/api`. O runtime Deno é instalado pelo `npm ci`, sem instalação global. As rotas de refeições, fotos, coach, VIT, passos e exclusão de conta usam esse backend. Sem credenciais privadas, cadastro e registros continuam usando o Supabase diretamente, mas essas rotas informam configuração pendente.
+`npm run dev` inicia frontend e backend juntos: Vite em 5173 (ou próxima porta livre) e API em 8787, com proxy `/api`. O backend recarrega ao alterar seus arquivos. O runtime Deno é instalado pelo `npm ci`, sem instalação global. As rotas de refeições, fotos, coach, VIT, passos e exclusão de conta usam esse backend. Sem credenciais privadas, cadastro e registros continuam usando o Supabase diretamente, mas essas rotas informam configuração pendente.
 
 Configure Site URL/Redirect URLs no Supabase Auth para localhost e seu domínio HTTPS. Para uso público configure [SMTP](https://supabase.com/docs/guides/auth/auth-smtp). Reinicie o servidor ao alterar ambiente.
 
@@ -38,7 +38,9 @@ Configure Site URL/Redirect URLs no Supabase Auth para localhost e seu domínio 
 
 Siga [MANUAL-STEPS.md](docs/MANUAL-STEPS.md): configure o `.env`, migrações e bucket privado. **Não é necessário cadastrar Secrets ou publicar Edge Functions no Supabase.** Supabase continua responsável por banco, Auth, Storage e quotas SQL; a API do Vitra lê as chaves no servidor.
 
-Para produção, execute `npm run build` e `npm start` no servidor com o `.env` configurado; exponha a porta 8787 por HTTPS. Ele entrega `dist/` e `/api` juntos. Uma hospedagem apenas de arquivos estáticos não executa esse backend: se separar frontend e API, configure `VITE_API_URL` antes do build e inclua a origem do frontend em `ALLOWED_ORIGINS`. Veja [ENVIRONMENT.md](docs/ENVIRONMENT.md).
+Na **Vercel**, `vercel.json` publica o frontend Vite e as seis funções Node em `api/`, incluindo `/api/vit`. Cadastre as variáveis do arquivo privado `.env.vercel` no projeto e faça novo deploy, com `VITE_API_URL=/api`. Chaves privadas são lidas apenas pelas funções. Veja [VERCEL.md](docs/VERCEL.md).
+
+Em um servidor com processo persistente, execute `npm run build` e `npm start` com o `.env` configurado; exponha a porta 8787 por HTTPS. Ele entrega `dist/` e `/api` juntos. Se separar frontend e API, configure `VITE_API_URL` antes do build e inclua a origem do frontend em `ALLOWED_ORIGINS`. Veja [ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
 Logs legados permanecem em `user_data` e `daily_records`, sem migração destrutiva de datas ou histórico. Novos registros usam tabelas próprias com RLS por titular e datas ISO. Sessões continuam por timestamps.
 

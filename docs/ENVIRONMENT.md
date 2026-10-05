@@ -24,6 +24,8 @@ As antigas configurações locais `.env.local` foram preservadas como `.env.loca
 
 Para produção, instale as dependências (`npm ci`), gere o build e mantenha `npm start` ativo em um host com processos persistentes. Configure HTTPS no proxy do host e deixe `VITE_API_URL=/api`. Transfira o `.env` diretamente ao servidor por um canal privado ou forneça as mesmas variáveis no ambiente do processo; variáveis já presentes no processo têm precedência sobre o arquivo. Um site estático sozinho não lê chaves privadas nem executa IA.
 
+Na Vercel, use as funções Node de `api/` e o `vercel.json` do projeto. Cadastre as variáveis do `.env.vercel` nas Environment Variables, incluindo as chaves privadas com seus nomes sem `VITE_`, e faça um novo deploy. Use `VITE_API_URL=/api`; `API_PORT` não é necessário na Vercel. As origens do deploy são adicionadas a partir de metadados confiáveis da Vercel; domínios adicionais exigem `ALLOWED_ORIGINS` exato. O `.env.vercel` atualizado contém segredos e permanece ignorado pelo Git. Consulte [VERCEL.md](VERCEL.md).
+
 Se frontend e API estiverem em domínios separados, `VITE_API_URL` deve ser a URL pública terminada em `/api` do backend (sem credenciais, query ou fragmento). Faça novo build do frontend e adicione sua origem a `ALLOWED_ORIGINS`. A chave privada continua exclusivamente no backend. Atualize Site URL/Redirect URLs do Supabase Auth para o endereço do frontend.
 
 ## iPhone e rotas

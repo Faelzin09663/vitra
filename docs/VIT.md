@@ -22,7 +22,7 @@ No computador, Enter envia e Shift + Enter adiciona uma linha. Durante composiç
 
 ## Configuração
 
-O backend usa `SUPABASE_SECRET_KEY` e `GEMINI_API_KEY` exclusivamente no `.env` da raiz. `GEMINI_MODEL_VIT` é um override opcional; vazio usa o modelo geral. Não há chave privada no frontend nem necessidade de Supabase Secrets. Execute o servidor Vitra para atender `/api/vit`; uma hospedagem somente estática não executa IA. Veja [ENVIRONMENT.md](ENVIRONMENT.md).
+Localmente, o backend usa `SUPABASE_SECRET_KEY` e `GEMINI_API_KEY` no `.env` da raiz. Na Vercel, essas variáveis ficam no ambiente das funções Node de `api/`, incluindo `/api/vit`. `GEMINI_MODEL_VIT` é um override opcional; vazio usa o modelo geral. Não há chave privada no frontend nem necessidade de Supabase Secrets. Uma hospedagem somente estática não executa IA; use as funções da Vercel ou o servidor Vitra. Veja [ENVIRONMENT.md](ENVIRONMENT.md) e [VERCEL.md](VERCEL.md).
 
 VIT, coach e chat numérico compartilham 30 solicitações por hora. Fotos também usam a quota corporal de 5 análises por dia. Erros após consumir quota podem contar. Testes sempre usam provedor simulado, sem chamada Gemini real; faturamento e acesso ao modelo precisam estar ativos na conta Google.
 

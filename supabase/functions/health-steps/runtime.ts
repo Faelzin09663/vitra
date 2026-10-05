@@ -1,4 +1,4 @@
-import { createClient } from "npm:@supabase/supabase-js@2.117.2";
+import { createClient } from "@supabase/supabase-js";
 import { createHealthHandler } from "../_shared/health-handler.ts";
 import type { EnvReader } from "../_shared/server-env.ts";
 
