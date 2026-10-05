@@ -1,5 +1,13 @@
 # Alterações
 
+## 2026-10-04 — Gasto, déficit e refeições por texto
+
+- Snapshot de gasto MET por treino/cardio, com peso/duração/intensidade e rateio por exercícios concluídos.
+- Perfil permite déficit e crédito do gasto registrado; painel de alimentação mostra o orçamento diário e atividades sem dados.
+- Fator semanal e atividades registradas são métodos alternativos; virada de dia recalcula sem reestimar logs antigos.
+- Análise de refeições abre em Texto e porções, com foto opcional e revisão antes de salvar.
+- Validação: cálculos puros, mudança de peso/dia, ausência de dados e compatibilidade com metas antigas/manuais.
+
 ## 2026-10-04 — Estimativa no perfil
 
 - Perfil mostra os dados faltantes para calorias automáticas e a estimativa junto ao botão de salvar, inclusive no celular.

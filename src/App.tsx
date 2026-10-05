@@ -1,3 +1,4 @@
+import { EnergyPanel } from "./components/EnergyPanel";
 import React from "react";
 import {
   House,
@@ -700,6 +701,7 @@ export default function App({
           )}
           {page === "Alimentação" && (
             <>
+              <EnergyPanel store={d} />
               <MealAnalyzer
                 consent={d.preferences.ai_consent}
                 age={d.profile.age}
@@ -902,7 +904,7 @@ export default function App({
                     />
                   </label>
                   <label>
-                    Duração (minutos, opcional)
+                    Duração (minutos, necessária para estimar calorias)
                     <input
                       name="minutes"
                       type="number"

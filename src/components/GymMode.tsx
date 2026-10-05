@@ -1,3 +1,4 @@
+import { workoutEnergy } from "../lib/energy";
 import React from "react";
 import { SessionTools } from "./SessionTools";
 import {
@@ -53,7 +54,7 @@ export function GymMode({
   React.useEffect(() => {
     setDraft(suggestSet(store, index, series || 0));
   }, [index, series, active.workoutId]);
-  const { rest } = useWorkoutClock(active),
+  const { rest, elapsed } = useWorkoutClock(active),
     previousRest = React.useRef(rest),
     context = React.useRef<AudioContext | null>(null);
   React.useEffect(() => {
@@ -76,6 +77,13 @@ export function GymMode({
       void context.current?.close();
     },
     [],
+  );
+  const energy = workoutEnergy(
+    exercises,
+    store.sets,
+    elapsed,
+    active.energyWeightKg ?? store.weights.at(-1)?.value ?? null,
+    active.energyMet ?? 3.5,
   );
   const last = ex
     ? historySets(store.workoutLogs, ex, active.workoutId).at(-1)
@@ -127,6 +135,32 @@ export function GymMode({
       <p>
         {ex.sets} séries · {ex.reps} repetições
       </p>
+      <div className="gym-energy">
+        <label>
+          Intensidade para estimativa
+          <select
+            value={active.energyMet ?? 3.5}
+            onChange={(e) =>
+              onChange({
+                activeWorkout: { ...active, energyMet: Number(e.target.value) },
+              })
+            }
+          >
+            <option value={3.5}>Moderada</option>
+            <option value={6}>Vigorosa</option>
+          </select>
+        </label>
+        <p>
+          Gasto líquido estimado da sessão:{" "}
+          <strong>{energy?.netKcal ?? "?"} kcal</strong>
+        </p>
+        <p>
+          Este exercício: ~
+          {energy?.exercises?.find((e) => e.index === index)?.netKcal ?? 0}{" "}
+          kcal, rateadas pela duração e séries concluídas; não é uma medição
+          individual.
+        </p>
+      </div>
       {last && (
         <p>
           Última vez: {last.load} kg × {last.reps}

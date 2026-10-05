@@ -1,15 +1,16 @@
+import { cardioEnergy, workoutEnergy, energyBudget, type EnergyEstimate } from "./energy";
 import { uid } from './uid';
 import type { AIPreferences } from '../../supabase/functions/_shared/ai-consent';
 export type Meal = { name: string; calories: number; protein: number; carbs: number; fat: number; estimated?: boolean; notes?: string; analyzedBy?: string; foods?: { name: string; portion: string }[]; confidence?: 'low' | 'medium' | 'high' };
-import { emptyProfile, nutritionEstimates, type PersonalProfile } from './nutrition';
+import { emptyProfile, type PersonalProfile } from './nutrition';
 export type Exercise = { name: string; exerciseId?: string; sets: number; reps: string; restSeconds?: number; replacedFrom?: string; replaceReason?: string };
 export type Workout = { id: string; name: string; focus: string; weekdays: number[]; exercises: Exercise[] };
 export type SetRecord = { load: number; reps: number; done: boolean; type?: 'normal'|'aquecimento'|'drop'|'falha' };
 export type WaterEntry = { id: string; date: string; at: string; amount: number };
-export type CardioEntry = { id: string; date: string; at: string; activity: string; minutes: number; distanceKm?: number };
-export type ActiveWorkout = { startedAt: string; pausedAt: string | null; pausedMs: number; restUntil: string | null; workoutId?: string; name?: string; focus?: string; exercises?: Exercise[] };
+export type CardioEntry = { id: string; date: string; at: string; activity: string; minutes: number; distanceKm?: number; energy?: EnergyEstimate | null };
+export type ActiveWorkout = { startedAt: string; pausedAt: string | null; pausedMs: number; restUntil: string | null; workoutId?: string; name?: string; focus?: string; exercises?: Exercise[]; energyWeightKg?: number | null; energyMet?: number };
 export type WeightEntry = { date: string; value: number; workout?: string; workoutMinutes?: number; cardioKm?: number; note?: string };
-export type WorkoutLog = { id: string; date: string; at: string; name: string; workoutId?: string; deload?: boolean; exercises: Exercise[]; sets: Record<string, SetRecord>; durationSeconds?: number };
+export type WorkoutLog = { id: string; date: string; at: string; name: string; workoutId?: string; deload?: boolean; exercises: Exercise[]; sets: Record<string, SetRecord>; durationSeconds?: number; energy?: EnergyEstimate | null };
 export type Store = {
   day: string; week: string; water: number; waterGoal: number; calorieGoal: number; cardioGoal: number; cardio: number;
   meals: Meal[]; weights: WeightEntry[]; exercises: Exercise[];
@@ -47,15 +48,19 @@ export function addWater(store: Store, amount: number, now = new Date()): Partia
 }
 export function addCardio(store: Store, activity: string, minutes: number, now = new Date(), distanceKm = 0): Partial<Store> {
   if (!Number.isFinite(distanceKm) || distanceKm < 0 || !Number.isFinite(minutes) || minutes < 0) throw new Error('Informe uma distância e duração válidas.');
-  return { cardio: store.cardio + minutes, cardioKm: Math.round((store.cardioKm + distanceKm) * 1000) / 1000, cardioEntries: [...store.cardioEntries, { id: uid(), date: dates(now).day, at: now.toISOString(), activity, minutes, distanceKm }] };
+  const patch = { cardio: store.cardio + minutes, cardioKm: Math.round((store.cardioKm + distanceKm) * 1000) / 1000, cardioEntries: [...store.cardioEntries, { id: uid(), date: dates(now).day, at: now.toISOString(), activity, minutes, distanceKm, energy: cardioEnergy(activity, minutes, store.weights.at(-1)?.value ?? null) }] };
+  return { ...patch, ...automaticCalories({ ...store, ...patch }) };
 }
 export function finishWorkout(store: Store, now = new Date()): Partial<Store> {
   const day = dates(now).day;
-  return { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: uid(), date: day, at: now.toISOString(), workoutId: store.activeWorkout?.workoutId, name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds: elapsedSeconds(store.activeWorkout, now.getTime()), exercises: structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises), sets: structuredClone(store.sets) }] };
+  const exercises = structuredClone(store.activeWorkout?.exercises || currentWorkout(store).exercises);
+  const durationSeconds = elapsedSeconds(store.activeWorkout, now.getTime());
+  const patch = { sessions: [...new Set([...store.sessions, day])], activeWorkout: null, sets: {}, workoutLogs: [...store.workoutLogs, { id: uid(), date: day, at: now.toISOString(), workoutId: store.activeWorkout?.workoutId, name: store.activeWorkout?.name || currentWorkout(store).name, durationSeconds, exercises, sets: structuredClone(store.sets), energy: workoutEnergy(exercises, store.sets, durationSeconds, store.activeWorkout?.energyWeightKg ?? store.weights.at(-1)?.value ?? null, store.activeWorkout?.energyMet ?? 3.5) }] };
+  return { ...patch, ...automaticCalories({ ...store, ...patch }) };
 }
 export function startWorkout(store: Store, now = new Date()): Partial<Store> {
   const workout = currentWorkout(store);
-  return store.activeWorkout ? {} : { sets: {}, activeWorkout: { startedAt: now.toISOString(), pausedAt: null, pausedMs: 0, restUntil: null, workoutId: workout.id, name: workout.name, focus: workout.focus, exercises: structuredClone(workout.exercises) } };
+  return store.activeWorkout ? {} : { sets: {}, activeWorkout: { startedAt: now.toISOString(), pausedAt: null, pausedMs: 0, restUntil: null, energyWeightKg: store.weights.at(-1)?.value ?? null, energyMet: 3.5, workoutId: workout.id, name: workout.name, focus: workout.focus, exercises: structuredClone(workout.exercises) } };
 }
 export function elapsedSeconds(active: ActiveWorkout | null, now = Date.now()): number {
   if (!active) return 0;
@@ -89,8 +94,8 @@ export function addWeight(store: Store, value: number, day: string, note = ''): 
 export function currentWorkout(store: Store): Workout { return store.workouts.find(w => w.id === store.selectedWorkoutId) || store.workouts[0]; }
 export function automaticCalories(store: Store): Partial<Store> {
   if (store.profile.calorieMode !== 'automatic') return {};
-  const daily = nutritionEstimates(store.profile, store.weights.at(-1)?.value ?? null).daily;
-  return daily ? { calorieGoal: daily } : {};
+  const budget = energyBudget(store);
+  return budget.base !== null ? { calorieGoal: budget.target } : {};
 }
 export function saveProfile(store: Store, profile: PersonalProfile, weight: number | null): Partial<Store> {
   const patch = weight !== null && weight !== store.weights.at(-1)?.value ? addWeight({ ...store, profile }, weight, dates().day, 'Atualizado pelo perfil') : {};

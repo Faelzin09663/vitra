@@ -1,3 +1,4 @@
+import { energyBudget } from "../lib/energy";
 import React from "react";
 import { UserRound, Scale, Flame, Ruler, Check } from "lucide-react";
 import {
@@ -33,6 +34,16 @@ export function ProfilePanel({
     setWeight(latestWeight?.toString() || "");
   }, [latestWeight]);
   const estimates = nutritionEstimates(draft, weight ? Number(weight) : null);
+  const preview = energyBudget({
+    ...store,
+    profile: draft,
+    weights: weight
+      ? [
+          ...store.weights.slice(0, -1),
+          { date: store.day, value: Number(weight) },
+        ]
+      : [],
+  });
   const needed = calorieInputsNeeded(draft, weight ? Number(weight) : null);
   const change = (patch: Partial<PersonalProfile>) => {
     setDraft((p) => ({ ...p, ...patch }));
@@ -187,6 +198,80 @@ export function ProfilePanel({
             </label>
           </div>
           {draft.calorieMode === "automatic" && (
+            <fieldset className="energy-settings">
+              <legend>Objetivo e gasto de atividades</legend>
+              <label>
+                Objetivo
+                <select
+                  value={draft.calorieObjective ?? "maintenance"}
+                  onChange={(e) =>
+                    change({
+                      calorieObjective: e.target.value as
+                        "maintenance" | "deficit",
+                    })
+                  }
+                >
+                  <option value="maintenance">Manter peso</option>
+                  <option value="deficit">Déficit estimado</option>
+                </select>
+              </label>
+              {draft.calorieObjective === "deficit" && (
+                <label>
+                  Déficit desejado (kcal/dia)
+                  <input
+                    type="number"
+                    min={0}
+                    max={500}
+                    step={10}
+                    value={draft.deficitKcal ?? 250}
+                    onChange={(e) =>
+                      change({ deficitKcal: Number(e.target.value) })
+                    }
+                  />
+                </label>
+              )}
+              <label>
+                Como incluir exercício
+                <select
+                  value={draft.energyBasis ?? "activity"}
+                  onChange={(e) =>
+                    change({
+                      energyBasis: e.target.value as "activity" | "logged",
+                    })
+                  }
+                >
+                  <option value="activity">
+                    Fator de atividade semanal (sem somar treino)
+                  </option>
+                  <option value="logged">
+                    Rotina leve + treino e cardio registrados
+                  </option>
+                </select>
+              </label>
+              {draft.energyBasis === "logged" && (
+                <label>
+                  Gasto líquido convertido em crédito
+                  <select
+                    value={draft.exerciseCreditPct ?? 50}
+                    onChange={(e) =>
+                      change({ exerciseCreditPct: Number(e.target.value) })
+                    }
+                  >
+                    <option value={0}>0% (somente acompanhar)</option>
+                    <option value={50}>50% (padrão conservador)</option>
+                    <option value={100}>100%</option>
+                  </select>
+                </label>
+              )}
+              <p className="estimate-note">
+                O déficit configurado é limitado a 500 kcal e 20% da base. O app
+                não gera meta abaixo do gasto em repouso nem aplica déficit para
+                IMC abaixo de 18,5. São limites do aplicativo, não garantia de
+                adequação individual.
+              </p>
+            </fieldset>
+          )}
+          {draft.calorieMode === "automatic" && (
             <div className="calorie-preview" role="status" aria-live="polite">
               {estimates.daily ? (
                 <>
@@ -195,8 +280,9 @@ export function ProfilePanel({
                     {estimates.daily.toLocaleString("pt-BR")} kcal/dia
                   </strong>
                   <p>
-                    Salvar perfil aplica esta meta. Novos registros de peso
-                    recalculam o valor.
+                    Meta de consumo: {preview.target.toLocaleString("pt-BR")}{" "}
+                    kcal/dia. Salvar perfil aplica esta meta. Novos registros de
+                    peso recalculam o valor.
                   </p>
                 </>
               ) : (

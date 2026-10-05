@@ -269,3 +269,5 @@ footer > span:last-child { margin-left: 0; width: 100%; }
 .calorie-preview { margin-top: 14px; padding: 14px; background: var(--blue-bg); border: 1px solid var(--border-accent); border-radius: 10px; color: var(--text-secondary); }
 .calorie-preview strong { font-size: 14px; }
 .calorie-preview p { margin: 7px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-muted); }
+
+.energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.energy-grid span{display:block;color:var(--text-muted);font-size:12px}.energy-grid strong{display:block;font-size:20px;margin-top:5px}.energy-remaining{padding:14px;background:var(--blue-bg);border-radius:10px}.energy-settings{margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:10px}.energy-settings legend{padding:0 6px}.gym-energy{padding:12px;margin:14px 0;background:var(--surface-soft);border-radius:10px}.gym-energy p{font-size:12px;line-height:1.6}

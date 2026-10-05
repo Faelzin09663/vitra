@@ -5,6 +5,10 @@ export type PersonalProfile = {
   sex: "male" | "female" | "";
   activity: number;
   calorieMode: "manual" | "automatic";
+  energyBasis?: 'activity' | 'logged';
+  calorieObjective?: 'maintenance' | 'deficit';
+  deficitKcal?: number;
+  exerciseCreditPct?: number;
 };
 export const emptyProfile: PersonalProfile = {
   fullName: "",

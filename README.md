@@ -9,6 +9,7 @@ Webapp pessoal de treino, alimentação e hábitos em React 19, TypeScript, Vite
 - Sessões com snapshot, substituições com motivo, registros de desconforto e alerta conservador de recorrência.
 - Modo academia: um exercício por vez, valores do histórico, carga/repetições em um toque, tipos de série, recordes estimados, descanso, desfazer e Wake Lock.
 - Água, refeições/macros, cardio em quilômetros, peso a cada três dias e perfil com IMC/calorias que acompanham o peso.
+- Gasto estimado de treino/cardio, parcelas por exercício e meta com déficit/crédito configuráveis, sem duplicar o fator semanal. [Método e limites](docs/ENERGY.md).
 - Medidas, gráficos, estimativa por circunferências e fotos privadas sem EXIF, comparação por ângulo e download/exclusão.
 - Check-in diário, média móvel de sete dias, hábitos por agenda, sequências e calendário de 90 dias.
 - Volume, 1RM estimado, possível platô e equilíbrio muscular com dados mínimos e alertas dispensáveis.
