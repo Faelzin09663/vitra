@@ -1,5 +1,14 @@
 # Alterações
 
+## 2026-10-04 — Interface de chatbot do VIT
+
+- Conversas em uma área dedicada, histórico lateral no computador e painel de histórico no celular.
+- Tela inicial com sugestões, mensagens alinhadas por autor, campo inferior com foto e estado de envio.
+- Memórias e autorizações em diálogos acessíveis; nova conversa permanece como rascunho até o primeiro envio.
+- Enter envia no computador, Shift/composição preservam digitação; no celular, envio pelo botão.
+- Persistência, consentimentos, quotas e histórico no Supabase preservados; nenhuma migração necessária.
+- Validação: 167 testes com IA simulada, build e checagem Deno; nova conversa, atalhos de teclado, foco dos painéis e repetição após falha de memória.
+
 ## 2026-10-04 — VIT com conversas e memórias
 
 - Menu VIT no computador e celular, com histórico paginado e memórias confirmadas/editáveis/desativáveis no Supabase.

@@ -1,5 +1,19 @@
 import React from "react";
-import { Bot, Brain, Camera, Plus, Send, Trash2, X } from "lucide-react";
+import {
+  ArrowUp,
+  Bot,
+  Brain,
+  Camera,
+  Dumbbell,
+  MessageSquare,
+  PanelLeft,
+  Plus,
+  Settings2,
+  Sparkles,
+  Trash2,
+  Utensils,
+  X,
+} from "lucide-react";
 import { supabase } from "../lib/supabase";
 import { useRecords } from "../lib/useRecords";
 import { invokeAPI } from "../lib/api";
@@ -69,11 +83,19 @@ export function VitPanel({
     [image, setImage] = React.useState<Blob | null>(null),
     [preview, setPreview] = React.useState(""),
     [photoId, setPhotoId] = React.useState<string | null>(null),
-    [angle, setAngle] = React.useState("frente");
+    [angle, setAngle] = React.useState("frente"),
+    [historyOpen, setHistoryOpen] = React.useState(false),
+    [settingsOpen, setSettingsOpen] = React.useState(false),
+    [memoryOpen, setMemoryOpen] = React.useState(false),
+    [inflight, setInflight] = React.useState<string | null>(null);
   const generation = React.useRef(0),
     alive = React.useRef(true),
     sending = React.useRef(false),
-    pending = React.useRef<{ key: string; id: string } | null>(null);
+    pending = React.useRef<{ key: string; id: string } | null>(null),
+    restored = React.useRef(false),
+    scrollAfterLoad = React.useRef(true),
+    thread = React.useRef<HTMLDivElement>(null),
+    composer = React.useRef<HTMLTextAreaElement>(null);
   const adult = store.profile.age !== null &&
     Number.isInteger(store.profile.age) && store.profile.age >= 18 &&
     store.profile.age <= 100;
@@ -87,10 +109,26 @@ export function VitPanel({
     };
   }, []);
   React.useEffect(() => {
-    if (!conversations.loading && !conversation && conversations.rows.length) {
-      setConversation(conversations.rows.at(-1)!.id);
+    if (!conversations.loading && !restored.current) {
+      restored.current = true;
+      if (conversations.rows.length) {
+        setConversation(conversations.rows.at(-1)!.id);
+      }
     }
   }, [conversations.rows, conversations.loading, conversation]);
+  React.useEffect(() => {
+    if (scrollAfterLoad.current && thread.current) {
+      thread.current.scrollTop = thread.current.scrollHeight;
+    }
+  }, [messages, inflight]);
+  React.useEffect(() => {
+    if (composer.current) {
+      composer.current.style.height = "auto";
+      composer.current.style.height = `${
+        Math.min(composer.current.scrollHeight || 52, 160)
+      }px`;
+    }
+  }, [question, enabled]);
   React.useEffect(() => {
     if (!image) {
       setPreview("");
@@ -127,7 +165,18 @@ export function VitPanel({
       }
       if (version !== generation.current || !alive.current) return;
       const rows = [...(r.data || [])].reverse() as Message[];
+      scrollAfterLoad.current = !append;
+      const previousHeight = thread.current?.scrollHeight || 0;
+      const previousTop = thread.current?.scrollTop || 0;
       setMessages((old) => append ? [...rows, ...old] : rows);
+      if (append) {
+        requestAnimationFrame(() => {
+          if (version === generation.current && thread.current) {
+            thread.current.scrollTop = previousTop +
+              thread.current.scrollHeight - previousHeight;
+          }
+        });
+      }
       setOlder(rows.length === 100);
     } catch (err) {
       if (version === generation.current && alive.current) {
@@ -142,6 +191,7 @@ export function VitPanel({
     setOlder(false);
     setError("");
     if (conversation) void load(conversation);
+    else setLoading(false);
     return () => {
       generation.current++;
     };
@@ -170,11 +220,16 @@ export function VitPanel({
   }
   async function send(e: React.FormEvent) {
     e.preventDefault();
-    if (!enabled || busy || preparing || sending.current || !question.trim()) {
+    if (
+      !enabled || busy || loading || conversations.loading || preparing ||
+      sending.current || !question.trim()
+    ) {
       return;
     }
     sending.current = true;
     const prompt = question.trim();
+    scrollAfterLoad.current = true;
+    setInflight(prompt);
     await run(async () => {
       await beforeAsk();
       const id = conversation || await createConversation(prompt.slice(0, 80));
@@ -229,7 +284,28 @@ export function VitPanel({
       await conversations.reload();
       setNotice("Conversa salva na sua conta.");
     });
+    if (alive.current) setInflight(null);
     sending.current = false;
+  }
+  function chooseConversation(id: string) {
+    if (id && id === conversation) {
+      setHistoryOpen(false);
+      return;
+    }
+    setConversation(id);
+    setQuestion("");
+    setImage(null);
+    setPhotoId(null);
+    setHistoryOpen(false);
+    setNotice("");
+    setError("");
+    pending.current = null;
+    scrollAfterLoad.current = true;
+  }
+  function newConversation() {
+    restored.current = true;
+    chooseConversation("");
+    requestAnimationFrame(() => composer.current?.focus());
   }
   async function prepare(file: File) {
     setPreparing(true);
@@ -267,60 +343,529 @@ export function VitPanel({
       );
     });
   }
-  return (
-    <div className="vit-layout">
-      <section className="panel vit-chat">
-        <div className="section-heading">
-          <h2>
-            <Bot size={22} />VIT · seu assistente pessoal
-          </h2>
+  const memoryControls = (
+    <section className="vit-memory">
+      <h2>
+        <Brain size={20} />Memórias que você escolheu
+      </h2>
+      <p className="estimate-note">
+        Preferências e objetivos persistem entre conversas. O VIT usa até 20
+        memórias ativas mais recentes; desative, edite ou apague quando quiser.
+      </p>
+      <ul>
+        {memories.rows.map((m) => (
+          <li key={m.id}>
+            <p>{m.content}</p>
+            <label className="consent-check">
+              <input
+                type="checkbox"
+                checked={m.active}
+                disabled={busy}
+                onChange={(e) =>
+                  void run(async () => {
+                    await memories.save({
+                      ...m,
+                      active: e.target.checked,
+                      updated_at: new Date().toISOString(),
+                    });
+                  })}
+              />Usar esta memória
+            </label>
+            <div>
+              <button
+                disabled={busy}
+                onClick={() => {
+                  setEditing(m.id);
+                  setMemory(m.content);
+                }}
+              >
+                Editar
+              </button>
+              <button
+                disabled={busy}
+                onClick={() =>
+                  void run(async () => {
+                    await memories.remove(m.id);
+                    if (editing === m.id) {
+                      setEditing(null);
+                      setMemory("");
+                    }
+                  })}
+              >
+                Apagar memória
+              </button>
+            </div>
+          </li>
+        ))}
+      </ul>
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          void saveMemory(memory);
+        }}
+      >
+        <label>
+          Texto da memória<textarea
+            maxLength={500}
+            rows={3}
+            required
+            value={memory}
+            onChange={(e) => setMemory(e.target.value)}
+            placeholder="Ex.: Prefiro refeições simples e treino às segundas, quartas e sextas."
+          />
+        </label>
+        <button disabled={busy || !memory.trim()}>
+          {editing ? "Atualizar memória" : "Salvar memória"}
+        </button>
+        {editing && (
           <button
-            disabled={busy || loading || conversations.loading}
-            onClick={() =>
-              void run(async () => {
-                await createConversation();
-                setQuestion("");
-                setImage(null);
-                setPhotoId(null);
-                pending.current = null;
-              })}
+            type="button"
+            onClick={() => {
+              setEditing(null);
+              setMemory("");
+            }}
           >
-            <Plus size={16} />Nova conversa
+            Cancelar edição
           </button>
-        </div>
-        <p className="sub">
-          Planeje refeições, revise seu treino e acompanhe seu objetivo com
-          contexto dos seus registros.
-        </p>
-        <div className="vit-conversation-tools">
-          <label>
-            Conversa<select
-              value={conversation}
-              disabled={busy || conversations.loading}
-              onChange={(e) => {
-                setConversation(e.target.value);
-                setImage(null);
-                setPhotoId(null);
-                pending.current = null;
-              }}
-            >
-              <option value="">Escolha ou crie uma conversa</option>
-              {[...conversations.rows].reverse().map((c) => (
-                <option key={c.id} value={c.id}>{c.title}</option>
-              ))}
-            </select>
-          </label>
-          {conversation && (
+        )}
+      </form>
+    </section>
+  );
+  const currentTitle =
+    conversations.rows.find((c) => c.id === conversation)?.title ||
+    "Nova conversa";
+  const suggestions = [
+    {
+      icon: Utensils,
+      title: "Planejar uma refeição",
+      detail: "Ideias que combinam com sua meta",
+      question: "O que posso comer hoje dentro da minha meta?",
+    },
+    {
+      icon: Dumbbell,
+      title: "Revisar meu treino",
+      detail: "Um próximo passo para evoluir",
+      question: "Como melhorar meu treino desta semana?",
+    },
+    {
+      icon: Sparkles,
+      title: "Manter a constância",
+      detail: "Hábitos possíveis para o seu dia",
+      question: "Me ajude a manter meus hábitos.",
+    },
+  ];
+  const historyControls = (
+    <>
+      <div className="vit-history-heading">
+        <MessageSquare size={19} />
+        <strong>Suas conversas</strong>
+      </div>
+      <button
+        className="vit-new-chat"
+        disabled={busy || preparing || conversations.loading}
+        onClick={newConversation}
+      >
+        <Plus size={18} />Nova conversa
+      </button>
+      <nav className="vit-history-list" aria-label="Conversas do VIT">
+        {conversations.loading && <p role="status">Carregando histórico…</p>}
+        {!conversations.loading && !conversations.rows.length && (
+          <p>Suas conversas aparecerão aqui.</p>
+        )}
+        {[...conversations.rows].reverse().map((c) => (
+          <button
+            key={c.id}
+            className={conversation === c.id ? "selected" : ""}
+            aria-current={conversation === c.id ? "page" : undefined}
+            disabled={busy || preparing}
+            title={c.title}
+            onClick={() => chooseConversation(c.id)}
+          >
+            <MessageSquare size={16} />
+            <span>{c.title}</span>
+          </button>
+        ))}
+      </nav>
+      {conversations.error && (
+        <p className="inline-error" role="alert">{conversations.error}</p>
+      )}
+      <div className="vit-history-bottom">
+        <span>
+          <Brain size={16} />
+          {memories.rows.filter((m) => m.active).length} memórias ativas
+        </span>
+        <p>Seu objetivo, uma conversa de cada vez.</p>
+      </div>
+    </>
+  );
+  return (
+    <div className="vit-shell">
+      <div className="vit-history">{historyControls}</div>
+      <section className="vit-chat" aria-label="Chat com o VIT">
+        <div className="vit-topbar">
+          <button
+            className="vit-icon-button vit-history-toggle"
+            aria-label="Abrir histórico de conversas"
+            aria-expanded={historyOpen}
+            onClick={() => setHistoryOpen(true)}
+          >
+            <PanelLeft size={20} />
+          </button>
+          <div className="vit-chat-title">
+            <strong>
+              <Sparkles size={19} />VIT
+            </strong>
+            <span title={currentTitle}>{currentTitle}</span>
+          </div>
+          <div className="vit-topbar-actions">
             <button
-              disabled={busy || loading}
-              onClick={() => setConfirmDelete(true)}
-              aria-label="Excluir conversa"
+              className="vit-icon-button"
+              aria-label="Nova conversa"
+              title="Nova conversa"
+              disabled={busy || preparing || conversations.loading}
+              onClick={newConversation}
             >
-              <Trash2 size={18} />
+              <Plus size={20} />
             </button>
-          )}
+            <button
+              className="vit-icon-button"
+              aria-label="Gerenciar memórias"
+              title="Memórias"
+              onClick={() => setMemoryOpen(true)}
+            >
+              <Brain size={20} />
+            </button>
+            <button
+              className="vit-icon-button"
+              aria-label="Autorizações e privacidade"
+              title="Autorizações e privacidade"
+              onClick={() => setSettingsOpen(true)}
+            >
+              <Settings2 size={20} />
+            </button>
+            {conversation && (
+              <button
+                className="vit-icon-button"
+                disabled={busy || loading}
+                onClick={() => setConfirmDelete(true)}
+                aria-label="Excluir conversa"
+                title="Excluir conversa"
+              >
+                <Trash2 size={18} />
+              </button>
+            )}
+          </div>
         </div>
-        {!enabled && (
+        <div
+          className="vit-thread"
+          ref={thread}
+          aria-label="Histórico da conversa"
+          tabIndex={0}
+        >
+          <div className="vit-thread-inner">
+            {older && (
+              <button
+                className="vit-load-older"
+                disabled={loading || busy}
+                onClick={() => void load(conversation, true)}
+              >
+                Carregar mensagens anteriores
+              </button>
+            )}
+            {!messages.length && !loading && !inflight && (
+              <div className="vit-welcome">
+                <div className="vit-welcome-icon">
+                  <Sparkles size={30} />
+                </div>
+                <p className="vit-welcome-kicker">SEU ASSISTENTE PESSOAL</p>
+                <h2>Como posso ajudar hoje?</h2>
+                <p>
+                  Vamos cuidar do seu treino, da sua alimentação e dos pequenos
+                  passos que fazem diferença.
+                </p>
+                {!enabled && (
+                  <button
+                    className="vit-enable"
+                    onClick={() => setSettingsOpen(true)}
+                  >
+                    <Settings2 size={17} />Autorizar o VIT para começar
+                  </button>
+                )}
+                <div className="vit-suggestions">
+                  {suggestions.map((
+                    { icon: Icon, title, detail, question: prompt },
+                  ) => (
+                    <button
+                      key={title}
+                      disabled={!enabled || busy}
+                      onClick={() => {
+                        setQuestion(prompt);
+                        composer.current?.focus();
+                      }}
+                    >
+                      <Icon size={20} />
+                      <strong>{title}</strong>
+                      <span>{detail}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {messages.map((m) => (
+              <article key={m.id} className={`vit-message ${m.role}`}>
+                {m.role === "assistant" && (
+                  <span className="vit-assistant-avatar" aria-hidden="true">
+                    <Sparkles size={18} />
+                  </span>
+                )}
+                <div className="vit-message-body">
+                  <strong className="vit-speaker">
+                    {m.role === "user" ? "Você" : "VIT"}
+                  </strong>
+                  <p>{m.content}</p>
+                  {m.photo_id && (
+                    <small>
+                      <Camera size={14} />Foto própria anexada · acervo privado
+                      em Evolução → Fotos
+                    </small>
+                  )}
+                  {m.role === "assistant" &&
+                    m.metadata.memorySuggestions?.map((text, i) => (
+                      <div className="vit-memory-proposal" key={i}>
+                        <p>
+                          <Brain size={15} />Lembrar: {text}
+                        </p>
+                        <button
+                          disabled={busy ||
+                            memories.rows.some((x) =>
+                              x.content === text
+                            )}
+                          onClick={() => void saveMemory(text, null)}
+                        >
+                          {memories.rows.some((x) =>
+                              x.content === text
+                            )
+                            ? "Memória salva"
+                            : "Confirmar memória"}
+                        </button>
+                      </div>
+                    ))}
+                  {m.metadata.photoAnalysis && (
+                    <details>
+                      <summary>Observações da foto</summary>
+                      <p>{m.metadata.photoAnalysis.reason}</p>
+                      {Object.values(m.metadata.photoAnalysis.quality).filter(
+                        Boolean,
+                      ).map((text, i) => <p key={i}>{text}</p>)}
+                      <p>{m.metadata.photoAnalysis.limitations}</p>
+                    </details>
+                  )}
+                </div>
+              </article>
+            ))}
+            {inflight && (
+              <article
+                className="vit-message user"
+                aria-label="Mensagem em envio"
+              >
+                <div className="vit-message-body">
+                  <strong className="vit-speaker">Você</strong>
+                  <p>{inflight}</p>
+                  <small>Enviando…</small>
+                </div>
+              </article>
+            )}
+            {(inflight || loading) && (
+              <div className="vit-thinking" role="status">
+                <span className="vit-assistant-avatar" aria-hidden="true">
+                  <Bot size={18} />
+                </span>
+                <span>
+                  {inflight ? "VIT está pensando…" : "Carregando conversa…"}
+                </span>
+                <i aria-hidden="true" />
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="vit-composer-dock">
+          {[error, conversations.error, memories.error].filter(Boolean).map((
+            message,
+            i,
+          ) => <p key={i} className="inline-error" role="alert">{message}</p>)}
+          {notice && <p className="vit-notice" role="status">{notice}</p>}
+          {!enabled && (
+            <p className="vit-composer-hint">
+              Para conversar,{" "}
+              <button onClick={() => setSettingsOpen(true)}>
+                abra as autorizações do VIT
+              </button>.
+            </p>
+          )}
+          <form onSubmit={send} className="vit-composer">
+            {preview && (
+              <div className="vit-attachment">
+                <img src={preview} alt="Foto própria selecionada para o VIT" />
+                <div>
+                  <label>
+                    Ângulo<select
+                      value={angle}
+                      disabled={busy || Boolean(photoId)}
+                      onChange={(e) => setAngle(e.target.value)}
+                    >
+                      <option value="frente">Frente</option>
+                      <option value="lado">Lado</option>
+                      <option value="costas">Costas</option>
+                    </select>
+                  </label>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    onClick={() => {
+                      setImage(null);
+                      setPhotoId(null);
+                    }}
+                  >
+                    <X size={15} />Remover anexo
+                  </button>
+                </div>
+                <p>
+                  Ao enviar, a foto fica no acervo privado de Evolução. Remover
+                  o anexo não apaga uma foto já salva.
+                </p>
+              </div>
+            )}
+            <label className="vit-composer-label">
+              <span className="vit-sr-only">Converse com o VIT</span>
+              <textarea
+                ref={composer}
+                value={question}
+                maxLength={1500}
+                rows={1}
+                disabled={busy || !enabled}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (
+                    e.key === "Enter" && !e.shiftKey &&
+                    !e.nativeEvent.isComposing && !e.repeat &&
+                    window.matchMedia?.("(min-width: 768px)").matches
+                  ) {
+                    e.preventDefault();
+                    e.currentTarget.form?.requestSubmit();
+                  }
+                }}
+                placeholder="Pergunte ao VIT…"
+                required
+              />
+            </label>
+            <div className="vit-composer-toolbar">
+              <label
+                className={`vit-attach-button ${
+                  !photosEnabled ? "disabled" : ""
+                }`}
+                title={photosEnabled
+                  ? "Anexar foto própria"
+                  : "Autorize fotos nas configurações"}
+              >
+                <Camera size={20} />
+                <span>{preparing ? "Preparando…" : "Foto"}</span>
+                <input
+                  aria-label="Foto própria para o VIT"
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  disabled={busy || preparing || !photosEnabled}
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) void prepare(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+              {!photosEnabled && enabled && (
+                <button
+                  type="button"
+                  className="vit-photo-authorize"
+                  onClick={() => setSettingsOpen(true)}
+                >
+                  Autorizar fotos
+                </button>
+              )}
+              <span className="vit-character-count">
+                {question.length}/1500
+              </span>
+              <button
+                type="submit"
+                className="vit-send"
+                aria-label="Enviar ao VIT"
+                title="Enviar ao VIT"
+                disabled={busy || loading || preparing ||
+                  conversations.loading || !enabled || !question.trim()}
+              >
+                <ArrowUp size={21} />
+              </button>
+            </div>
+          </form>
+          <p className="vit-composer-note">
+            O VIT pode errar. Revise as sugestões antes de aplicar.<span>
+              Enter envia · Shift + Enter quebra a linha
+            </span>
+          </p>
+        </div>
+      </section>
+      {historyOpen && (
+        <ModalDialog
+          label="Histórico de conversas do VIT"
+          className="vit-history-dialog"
+          onClose={() => setHistoryOpen(false)}
+        >
+          <div className="vit-dialog-heading">
+            <h2>Histórico</h2>
+            <button
+              className="vit-icon-button"
+              aria-label="Fechar histórico"
+              onClick={() => setHistoryOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
+          {historyControls}
+        </ModalDialog>
+      )}
+      {memoryOpen && (
+        <ModalDialog
+          label="Memórias do VIT"
+          onClose={() => setMemoryOpen(false)}
+        >
+          <div className="vit-dialog-heading">
+            <h2>Memórias</h2>
+            <button
+              className="vit-icon-button"
+              aria-label="Fechar memórias"
+              onClick={() => setMemoryOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
+          {error && <p className="inline-error" role="alert">{error}</p>}
+          {notice && <p role="status">{notice}</p>}
+          {memoryControls}
+        </ModalDialog>
+      )}
+      {settingsOpen && (
+        <ModalDialog
+          label="Autorizações e privacidade do VIT"
+          onClose={() => setSettingsOpen(false)}
+        >
+          <div className="vit-dialog-heading">
+            <h2>Autorizações e privacidade</h2>
+            <button
+              className="vit-icon-button"
+              aria-label="Fechar autorizações"
+              onClick={() => setSettingsOpen(false)}
+            >
+              <X size={20} />
+            </button>
+          </div>
           <VitConsentSettings
             consent={store.preferences.vit_consent}
             bodyConsent={store.preferences.body_consent}
@@ -328,260 +873,8 @@ export function VitPanel({
             onConsent={onConsent}
             onBodyConsent={onBodyConsent}
           />
-        )}
-        <div className="feature-tabs">
-          {[
-            "O que posso comer hoje dentro da minha meta?",
-            "Como melhorar meu treino desta semana?",
-            "Me ajude a manter meus hábitos.",
-          ].map((q) => (
-            <button
-              key={q}
-              disabled={busy || !enabled}
-              onClick={() => setQuestion(q)}
-            >
-              {q}
-            </button>
-          ))}
-        </div>
-        {older && (
-          <button
-            disabled={loading || busy}
-            onClick={() => void load(conversation, true)}
-          >
-            Carregar mensagens anteriores
-          </button>
-        )}
-        <div className="vit-messages" aria-label="Histórico da conversa">
-          {!messages.length && !loading && (
-            <p className="sub">
-              Comece com seu objetivo ou uma dúvida. Você decide o que vira
-              memória.
-            </p>
-          )}
-          {messages.map((m) => (
-            <article key={m.id} className={`vit-message ${m.role}`}>
-              <strong>{m.role === "user" ? "Você" : "VIT"}</strong>
-              <p>{m.content}</p>
-              {m.photo_id && (
-                <small>
-                  Foto própria anexada · acervo privado em Evolução → Fotos
-                </small>
-              )}
-              {m.role === "assistant" &&
-                m.metadata.memorySuggestions?.map((text, i) => (
-                  <div className="vit-memory-proposal" key={i}>
-                    <p>
-                      <Brain size={14} />Lembrar: {text}
-                    </p>
-                    <button
-                      disabled={busy ||
-                        memories.rows.some((x) =>
-                          x.content === text
-                        )}
-                      onClick={() => void saveMemory(text, null)}
-                    >
-                      Confirmar memória
-                    </button>
-                  </div>
-                ))}
-              {m.metadata.photoAnalysis && (
-                <details>
-                  <summary>Observações da foto</summary>
-                  <p>{m.metadata.photoAnalysis.reason}</p>
-                  {Object.values(m.metadata.photoAnalysis.quality).filter(
-                    Boolean,
-                  ).map((text, i) => <p key={i}>{text}</p>)}
-                  <p>{m.metadata.photoAnalysis.limitations}</p>
-                </details>
-              )}
-            </article>
-          ))}
-        </div>
-        {(loading || busy) && (
-          <p role="status">
-            {busy
-              ? "VIT está preparando sua resposta…"
-              : "Carregando conversa…"}
-          </p>
-        )}
-        {[error, conversations.error, memories.error].filter(Boolean).map((
-          message,
-          i,
-        ) => <p key={i} className="inline-error" role="alert">{message}</p>)}
-        {notice && <p role="status">{notice}</p>}
-        <form onSubmit={send} className="vit-composer">
-          <label>
-            Converse com o VIT<textarea
-              value={question}
-              maxLength={1500}
-              rows={3}
-              disabled={busy || !enabled}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Conte seu objetivo, preferências ou uma dúvida sobre alimentação e treino."
-              required
-            />
-          </label>
-          {enabled && (
-            <label className="vit-photo-input">
-              <Camera size={18} />
-              {preparing ? "Preparando foto…" : "Anexar foto própria"}
-              <input
-                aria-label="Foto própria para o VIT"
-                type="file"
-                accept="image/jpeg,image/png,image/webp"
-                disabled={busy || preparing || !photosEnabled}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) void prepare(f);
-                  e.target.value = "";
-                }}
-              />
-            </label>
-          )}
-          {enabled && !photosEnabled && (
-            <p className="estimate-note">
-              Abra Autorizações abaixo para habilitar fotos.
-            </p>
-          )}
-          {preview && (
-            <div className="vit-attachment">
-              <img src={preview} alt="Foto própria selecionada para o VIT" />
-              <label>
-                Ângulo<select
-                  value={angle}
-                  disabled={busy || Boolean(photoId)}
-                  onChange={(e) => setAngle(e.target.value)}
-                >
-                  <option value="frente">Frente</option>
-                  <option value="lado">Lado</option>
-                  <option value="costas">Costas</option>
-                </select>
-              </label>
-              <button
-                type="button"
-                disabled={busy}
-                onClick={() => {
-                  setImage(null);
-                  setPhotoId(null);
-                }}
-              >
-                <X size={15} />Remover anexo
-              </button>
-              <p>
-                Ao enviar, a foto ficará no acervo privado em Evolução → Fotos.
-                Remover este anexo não apaga uma foto já salva.
-              </p>
-            </div>
-          )}
-          <button
-            className="primary"
-            disabled={busy || loading || preparing || !enabled ||
-              !question.trim()}
-          >
-            <Send size={16} />Enviar ao VIT
-          </button>
-        </form>
-        {enabled && (
-          <details>
-            <summary>Autorizações e privacidade</summary>
-            <VitConsentSettings
-              consent={store.preferences.vit_consent}
-              bodyConsent={store.preferences.body_consent}
-              age={store.profile.age}
-              onConsent={onConsent}
-              onBodyConsent={onBodyConsent}
-            />
-          </details>
-        )}
-      </section>
-      <section className="panel vit-memory">
-        <h2>
-          <Brain size={20} />Memórias que você escolheu
-        </h2>
-        <p className="estimate-note">
-          Preferências e objetivos persistem entre conversas. O VIT usa até 20
-          memórias ativas mais recentes; desative, edite ou apague quando
-          quiser.
-        </p>
-        <ul>
-          {memories.rows.map((m) => (
-            <li key={m.id}>
-              <p>{m.content}</p>
-              <label className="consent-check">
-                <input
-                  type="checkbox"
-                  checked={m.active}
-                  disabled={busy}
-                  onChange={(e) =>
-                    void run(async () => {
-                      await memories.save({
-                        ...m,
-                        active: e.target.checked,
-                        updated_at: new Date().toISOString(),
-                      });
-                    })}
-                />Usar esta memória
-              </label>
-              <div>
-                <button
-                  disabled={busy}
-                  onClick={() => {
-                    setEditing(m.id);
-                    setMemory(m.content);
-                  }}
-                >
-                  Editar
-                </button>
-                <button
-                  disabled={busy}
-                  onClick={() =>
-                    void run(async () => {
-                      await memories.remove(m.id);
-                      if (editing === m.id) {
-                        setEditing(null);
-                        setMemory("");
-                      }
-                    })}
-                >
-                  Apagar memória
-                </button>
-              </div>
-            </li>
-          ))}
-        </ul>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void saveMemory(memory);
-          }}
-        >
-          <label>
-            Texto da memória<textarea
-              maxLength={500}
-              rows={3}
-              required
-              value={memory}
-              onChange={(e) => setMemory(e.target.value)}
-              placeholder="Ex.: Prefiro refeições simples e treino às segundas, quartas e sextas."
-            />
-          </label>
-          <button disabled={busy || !memory.trim()}>
-            {editing ? "Atualizar memória" : "Salvar memória"}
-          </button>
-          {editing && (
-            <button
-              type="button"
-              onClick={() => {
-                setEditing(null);
-                setMemory("");
-              }}
-            >
-              Cancelar edição
-            </button>
-          )}
-        </form>
-      </section>
+        </ModalDialog>
+      )}
       {confirmDelete && (
         <ModalDialog
           label="Excluir conversa do VIT"
@@ -590,6 +883,7 @@ export function VitPanel({
           }}
         >
           <h2>Excluir esta conversa?</h2>
+          {error && <p className="inline-error" role="alert">{error}</p>}
           <p>
             As mensagens serão apagadas. Suas memórias e fotos privadas
             continuam disponíveis; apague-as separadamente quando desejar.
@@ -600,14 +894,17 @@ export function VitPanel({
             onClick={() =>
               void run(async () => {
                 await conversations.remove(conversation);
-                setConversation("");
-                setMessages([]);
+                chooseConversation("");
                 setConfirmDelete(false);
               })}
           >
             Confirmar exclusão
           </button>
-          <button disabled={busy} onClick={() => setConfirmDelete(false)}>
+          <button
+            disabled={busy}
+            onClick={() =>
+              setConfirmDelete(false)}
+          >
             Cancelar
           </button>
         </ModalDialog>

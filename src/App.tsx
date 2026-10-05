@@ -387,7 +387,7 @@ export default function App({
             <button onClick={retry}>Tentar salvar novamente</button>
           </div>
         )}
-        <main id="main-content" tabIndex={-1}>
+        <main id="main-content" className={page === 'VIT' ? 'vit-page' : undefined} tabIndex={-1}>
           <div className="heading">
             <div>
               <div className="eyebrow">UM NOVO DIA, UMA NOVA OPORTUNIDADE</div>

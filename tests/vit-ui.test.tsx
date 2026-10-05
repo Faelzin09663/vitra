@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { VitPanel } from "../src/components/VitPanel";
 import { VitConsentSettings } from "../src/components/VitConsentSettings";
@@ -57,6 +58,7 @@ vi.mock("../src/lib/useRecords", () => ({
 afterEach(() => {
   cleanup();
   vi.clearAllMocks();
+  vi.unstubAllGlobals();
 });
 function view() {
   const s = createInitialStore();
@@ -141,4 +143,79 @@ it("termo VIT separa a autorização de fotos e não envia automaticamente", asy
   );
   expect(onBody).not.toHaveBeenCalled();
   expect(invoke).not.toHaveBeenCalled();
+});
+it("nova conversa abre a tela inicial sem gravar conversa vazia ou restaurar a antiga; histórico permite voltar", async () => {
+  view();
+  await screen.findByText("Resposta salva anteriormente.");
+  fireEvent.click(screen.getAllByRole("button", { name: "Nova conversa" })[0]);
+  await screen.findByRole("heading", { name: "Como posso ajudar hoje?" });
+  expect(screen.queryByText("Resposta salva anteriormente.")).toBeNull();
+  expect(save).not.toHaveBeenCalled();
+  expect(invoke).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Minha conversa" }));
+  await screen.findByText("Resposta salva anteriormente.");
+});
+it("memórias ficam acessíveis num painel com foco e fechamento por Escape", async () => {
+  view();
+  await screen.findByText("Resposta salva anteriormente.");
+  screen.getByRole("button", { name: "Gerenciar memórias" }).focus();
+  fireEvent.click(screen.getByRole("button", { name: "Gerenciar memórias" }));
+  expect(screen.getByRole("dialog", { name: "Memórias do VIT" })).toBeTruthy();
+  fireEvent.change(screen.getByLabelText("Texto da memória"), {
+    target: { value: "Prefiro treinar pela manhã." },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Salvar memória" }));
+  await waitFor(() =>
+    expect(save).toHaveBeenCalledWith(
+      expect.objectContaining({
+        content: "Prefiro treinar pela manhã.",
+        active: true,
+      }),
+    )
+  );
+  fireEvent.keyDown(document, { key: "Escape" });
+  expect(screen.queryByRole("dialog", { name: "Memórias do VIT" })).toBeNull();
+  expect(document.activeElement).toBe(
+    screen.getByRole("button", { name: "Gerenciar memórias" }),
+  );
+});
+it("Enter no celular mantém a digitação; no computador envia, respeitando Shift e composição", async () => {
+  const matchMedia = vi.fn(() => ({ matches: false }));
+  vi.stubGlobal("matchMedia", matchMedia);
+  invoke.mockResolvedValue({
+    data: { answer: "Nova resposta", memorySuggestions: [], model: "mock" },
+    error: null,
+  });
+  view();
+  await screen.findByText("Resposta salva anteriormente.");
+  const field = screen.getByLabelText("Converse com o VIT");
+  fireEvent.change(field, { target: { value: "Como organizar meu almoço?" } });
+  fireEvent.keyDown(field, { key: "Enter" });
+  expect(invoke).not.toHaveBeenCalled();
+  matchMedia.mockReturnValue({ matches: true });
+  fireEvent.keyDown(field, { key: "Enter", shiftKey: true });
+  fireEvent.keyDown(field, { key: "Enter", isComposing: true });
+  expect(invoke).not.toHaveBeenCalled();
+  fireEvent.keyDown(field, { key: "Enter" });
+  await waitFor(() => expect(invoke).toHaveBeenCalledTimes(1));
+  await screen.findByText("Conversa salva na sua conta.");
+});
+it("falha ao salvar memória aparece dentro do painel aberto e mantém o texto para repetir", async () => {
+  save.mockRejectedValueOnce(new Error("Falha simulada ao salvar."));
+  view();
+  await screen.findByText("Resposta salva anteriormente.");
+  fireEvent.click(screen.getByRole("button", { name: "Gerenciar memórias" }));
+  const dialog = within(
+    screen.getByRole("dialog", { name: "Memórias do VIT" }),
+  );
+  fireEvent.change(dialog.getByLabelText("Texto da memória"), {
+    target: { value: "Prefiro refeições simples." },
+  });
+  fireEvent.click(dialog.getByRole("button", { name: "Salvar memória" }));
+  expect((await dialog.findByRole("alert")).textContent).toBe(
+    "Falha simulada ao salvar.",
+  );
+  expect(
+    (dialog.getByLabelText("Texto da memória") as HTMLTextAreaElement).value,
+  ).toBe("Prefiro refeições simples.");
 });

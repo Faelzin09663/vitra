@@ -272,5 +272,132 @@ footer > span:last-child { margin-left: 0; width: 100%; }
 
 .energy-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:20px 0}.energy-grid span{display:block;color:var(--text-muted);font-size:12px}.energy-grid strong{display:block;font-size:20px;margin-top:5px}.energy-remaining{padding:14px;background:var(--blue-bg);border-radius:10px}.energy-settings{margin-top:16px;padding:16px;border:1px solid var(--border);border-radius:10px}.energy-settings legend{padding:0 6px}.gym-energy{padding:12px;margin:14px 0;background:var(--surface-soft);border-radius:10px}.gym-energy p{font-size:12px;line-height:1.6}
 
-.vit-layout{display:grid;grid-template-columns:minmax(0,1fr);gap:18px}.vit-chat h2,.vit-memory h2{display:flex;align-items:center;gap:8px}.vit-conversation-tools{display:flex;align-items:center;gap:12px;margin-top:16px}.vit-conversation-tools label{flex:1;min-width:0}.vit-messages{display:flex;flex-direction:column;gap:14px;max-height:60vh;overflow-y:auto;overscroll-behavior:contain;margin:18px 0;padding:4px}.vit-message{border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface-soft);max-width:100%;overflow-wrap:anywhere}.vit-message.user{background:var(--blue-bg);margin-left:15px}.vit-message.assistant{margin-right:15px}.vit-message p{white-space:pre-wrap;line-height:1.7;margin-top:7px}.vit-message small{color:var(--text-muted)}.vit-memory-proposal{border-top:1px solid var(--border);padding-top:10px;margin-top:10px}.vit-memory-proposal button,.vit-memory button,.vit-consent button{min-height:48px;padding:10px;border:1px solid var(--border);border-radius:8px;margin:6px 6px 6px 0}.vit-memory ul{list-style:none;padding:0}.vit-memory li{border-bottom:1px solid var(--border);padding:14px 0;overflow-wrap:anywhere}.vit-memory li p{line-height:1.6}.vit-consent{padding:14px 0}.vit-consent p{line-height:1.7;font-size:13px;margin:10px 0}.vit-chat details{margin-top:15px}.vit-chat summary{cursor:pointer;min-height:48px;padding:12px 0}.vit-photo-input{display:flex;align-items:center;gap:8px}.vit-photo-input input{max-width:100%}.vit-attachment img{max-width:220px;max-height:240px;object-fit:contain;border-radius:8px}.vit-attachment p{font-size:12px;color:var(--text-muted);line-height:1.6}.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
-@media(min-width:1100px){.vit-layout{grid-template-columns:minmax(0,1.6fr) minmax(260px,1fr)}}
+.mobile-nav{grid-template-columns:repeat(5,minmax(0,1fr))}
+
+/* Dedicated chat workspace; the app navigation remains available. */
+main.vit-page {
+  display: flex;
+  flex-direction: column;
+  max-width: none;
+  height: calc(100dvh - 137px - env(safe-area-inset-bottom) - env(safe-area-inset-top));
+  min-height: 280px;
+  padding: 0;
+}
+.vit-page > .heading, .vit-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.vit-page > footer { display: none; }
+.vit-page > .workout-timer { flex: 0 0 auto; margin: 8px 12px; }
+.vit-shell { flex: 1; min-height: 0; min-width: 0; display: grid; grid-template-columns: minmax(0, 1fr); background: var(--surface); overflow: hidden; }
+.vit-history { display: none; }
+.vit-chat { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.vit-topbar { display: flex; align-items: center; gap: 6px; min-height: 66px; padding: 10px 12px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.vit-chat-title { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
+.vit-chat-title strong { display: flex; align-items: center; gap: 6px; font-size: 17px; letter-spacing: -.3px; }
+.vit-chat-title strong svg { color: var(--link); }
+.vit-chat-title > span { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vit-topbar-actions { display: flex; align-items: center; gap: 1px; }
+.vit-icon-button { display: inline-flex; align-items: center; justify-content: center; height: 44px; width: 44px; flex-shrink: 0; border-radius: 10px; color: var(--text-secondary); }
+.vit-icon-button:hover { background: var(--surface-soft); }
+.vit-thread { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; }
+.vit-thread-inner { width: min(100%, 820px); margin: 0 auto; padding: 24px 16px; }
+.vit-welcome { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 24px 0 18px; }
+.vit-welcome-icon { width: 68px; height: 68px; display: grid; place-items: center; border: 1px solid var(--border-accent); border-radius: 22px; background: var(--blue-bg); color: var(--link); margin-bottom: 24px; }
+.vit-welcome-kicker { color: var(--text-muted); font-size: 10px; letter-spacing: 1.8px; font-weight: 600; }
+.vit-welcome h2 { font-size: clamp(26px, 5vw, 38px); font-weight: 600; letter-spacing: -1px; line-height: 1.3; margin: 12px 0; }
+.vit-welcome > p:not(.vit-welcome-kicker) { color: var(--text-muted); font-size: 14px; line-height: 1.7; max-width: 470px; }
+.vit-enable { display: flex; align-items: center; gap: 8px; color: var(--link); border: 1px solid var(--border-accent); border-radius: 10px; padding: 10px 14px; margin-top: 20px; }
+.vit-suggestions { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; width: 100%; margin-top: 28px; }
+.vit-suggestions button { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 5px 12px; text-align: left; padding: 15px; border: 1px solid var(--border); border-radius: 14px; background: var(--surface); }
+.vit-suggestions button:hover { background: var(--surface-soft); border-color: var(--border-accent); }
+.vit-suggestions svg { color: var(--link); grid-row: span 2; }
+.vit-suggestions strong { font-size: 13px; font-weight: 600; }
+.vit-suggestions span { color: var(--text-muted); font-size: 12px; line-height: 1.5; }
+.vit-message { display: flex; gap: 12px; max-width: 100%; margin: 0 0 26px; overflow-wrap: anywhere; }
+.vit-message-body { min-width: 0; flex: 1; }
+.vit-message p { white-space: pre-wrap; line-height: 1.8; font-size: 15px; margin: 0; }
+.vit-speaker { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+.vit-assistant-avatar { display: grid; place-items: center; width: 30px; height: 30px; flex-shrink: 0; border-radius: 10px; color: var(--link); background: var(--blue-bg); }
+.vit-message.user { justify-content: flex-end; padding-left: 24px; }
+.vit-message.user .vit-message-body { flex: 0 1 auto; max-width: 88%; padding: 13px 18px; border-radius: 20px 20px 5px 20px; background: var(--surface-soft); }
+.vit-message small { display: flex; align-items: center; gap: 6px; font-size: 11px; line-height: 1.6; color: var(--text-muted); margin-top: 10px; }
+.vit-memory-proposal { margin-top: 16px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; }
+.vit-memory-proposal p { font-size: 12px; line-height: 1.6; }
+.vit-memory-proposal p svg { vertical-align: middle; margin-right: 6px; color: var(--link); }
+.vit-memory-proposal button { min-height: 44px; color: var(--link); font-size: 12px; padding: 8px 10px; margin-top: 5px; background: var(--blue-bg); border-radius: 8px; }
+.vit-message details { margin-top: 16px; color: var(--text-secondary); }
+.vit-message summary { cursor: pointer; font-size: 13px; padding: 12px 0; min-height: 44px; }
+.vit-message details p { font-size: 13px; }
+.vit-thinking { display: flex; align-items: center; gap: 12px; color: var(--text-muted); font-size: 13px; min-height: 44px; }
+.vit-thinking i { width: 6px; height: 6px; border-radius: 50%; background: var(--link); animation: vit-pulse 1.3s ease-in-out infinite; }
+@keyframes vit-pulse { 50% { opacity: .35; } }
+.vit-load-older { display: block; margin: 0 auto 24px; color: var(--link); padding: 10px 16px; border: 1px solid var(--border); border-radius: 12px; font-size: 12px; }
+.vit-composer-dock { width: min(100%, 820px); margin: 0 auto; padding: 8px 12px 12px; flex-shrink: 0; max-height: 60%; overflow-y: auto; }
+.vit-composer { border: 1px solid var(--border); border-radius: 22px; padding: 14px 12px 10px; background: var(--surface-soft); box-shadow: 0 3px 16px #00000005; }
+.vit-composer:focus-within { border-color: var(--border-accent); box-shadow: 0 0 0 2px var(--blue-bg); }
+.vit-composer-label { margin: 0; }
+.vit-composer textarea { width: 100%; border: 0; background: transparent; padding: 4px 4px 10px; min-height: 52px; max-height: 160px; resize: none; outline: none; box-shadow: none; font-size: 16px; line-height: 1.6; color: var(--text); }
+.vit-composer-toolbar { display: flex; align-items: center; gap: 8px; }
+.vit-attach-button { position: relative; display: inline-flex; align-items: center; flex-direction: row; gap: 6px; min-height: 44px; padding: 8px; margin: 0; border-radius: 10px; color: var(--text-secondary); font-size: 12px; overflow: hidden; cursor: pointer; }
+.vit-attach-button:hover { background: var(--surface); }
+.vit-attach-button:focus-within { outline: 2px solid var(--focus); outline-offset: 2px; }
+.vit-attach-button.disabled { opacity: .5; cursor: default; }
+.vit-attach-button input { position: absolute; inset: 0; opacity: 0; cursor: inherit; width: 100%; height: 100%; }
+.vit-photo-authorize { color: var(--link); font-size: 11px; padding: 8px 0; }
+.vit-character-count { margin-left: auto; color: var(--text-muted); font-size: 10px; }
+.vit-send { display: grid; place-items: center; height: 44px; min-width: 44px; border-radius: 50%; background: var(--primary); color: white; }
+.vit-send:disabled { background: var(--border); color: var(--text-muted); }
+.vit-composer-note { text-align: center; color: var(--text-muted); font-size: 10px; line-height: 1.5; margin-top: 9px; }
+.vit-composer-note span { display: none; }
+.vit-notice, .vit-composer-hint { font-size: 12px; line-height: 1.6; color: var(--text-muted); margin-bottom: 8px; }
+.vit-composer-hint button { color: var(--link); text-decoration: underline; min-height: 44px; }
+.vit-attachment { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; padding: 10px; border: 1px solid var(--border); border-radius: 12px; }
+.vit-attachment img { width: 70px; height: 80px; object-fit: cover; border-radius: 9px; }
+.vit-attachment label { margin-bottom: 0; font-size: 11px; }
+.vit-attachment select { min-height: 36px; padding: 4px 8px; }
+.vit-attachment button { display: flex; align-items: center; gap: 5px; color: var(--text-muted); font-size: 11px; }
+.vit-attachment p { width: 100%; font-size: 10px; color: var(--text-muted); line-height: 1.6; }
+.vit-dialog-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.vit-history-dialog { display: flex; flex-direction: column; height: min(640px, 85dvh); }
+.vit-history-heading { display: flex; align-items: center; gap: 9px; padding: 4px 4px 20px; font-size: 13px; }
+.vit-new-chat { display: flex; align-items: center; gap: 9px; width: 100%; padding: 11px 13px; font-size: 13px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+.vit-history-list { flex: 1; overflow: auto; min-height: 0; margin-top: 20px; }
+.vit-history-list button { display: flex; align-items: center; gap: 9px; width: 100%; padding: 12px 10px; border-radius: 9px; text-align: left; font-size: 12px; margin-bottom: 4px; }
+.vit-history-list button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vit-history-list button svg { flex-shrink: 0; color: var(--text-muted); }
+.vit-history-list button:hover, .vit-history-list button.selected { background: var(--blue-bg); }
+.vit-history-list p { color: var(--text-muted); font-size: 12px; line-height: 1.7; padding: 10px; }
+.vit-history-bottom { margin-top: auto; padding-top: 18px; border-top: 1px solid var(--border); color: var(--text-muted); }
+.vit-history-bottom span { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+.vit-history-bottom p { font-size: 11px; line-height: 1.7; margin-top: 8px; }
+.vit-memory h2 { display: flex; align-items: center; gap: 8px; font-size: 16px; }
+.vit-memory ul { list-style: none; padding: 0; }
+.vit-memory li { border-bottom: 1px solid var(--border); padding: 14px 0; overflow-wrap: anywhere; }
+.vit-memory li p, .vit-consent p { font-size: 13px; line-height: 1.7; margin: 10px 0; }
+.vit-memory button, .vit-consent button { padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; margin: 6px 6px 6px 0; }
+.vit-memory form { margin-top: 20px; }
+.vit-consent { padding: 10px 0; }
+.vit-consent .consent-check, .vit-memory .consent-check { display: flex; flex-direction: row; align-items: center; gap: 10px; }
+.vit-consent input[type="checkbox"], .vit-memory input[type="checkbox"] { width: 22px; min-height: 22px; flex-shrink: 0; accent-color: var(--primary); }
+@media (min-width: 768px) {
+  .vit-suggestions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vit-suggestions button { display: flex; flex-direction: column; gap: 10px; padding: 18px; }
+  .vit-thread-inner { padding: 32px; }
+  .vit-composer-dock { padding: 8px 28px 18px; }
+  .vit-composer-note span { display: inline; margin-left: 12px; }
+  .vit-welcome { padding-top: 50px; }
+}
+@media (min-width: 1024px) {
+  main.vit-page { height: calc(100dvh - 68px - env(safe-area-inset-top)); }
+  .vit-shell { grid-template-columns: 220px minmax(0, 1fr); }
+  .vit-history { display: flex; flex-direction: column; padding: 24px 12px 18px; background: var(--surface-soft); border-right: 1px solid var(--border); min-height: 0; }
+  .vit-history-toggle { display: none; }
+  .vit-topbar { padding: 10px 20px; }
+  .vit-chat-title { flex-direction: row; align-items: center; gap: 14px; }
+  .vit-chat-title > span { max-width: 260px; font-size: 12px; }
+}

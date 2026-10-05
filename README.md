@@ -13,7 +13,7 @@ Webapp pessoal de treino, alimentação e hábitos em React 19, TypeScript, Vite
 - Medidas, gráficos, estimativa por circunferências e fotos privadas sem EXIF, comparação por ângulo e download/exclusão.
 - Check-in diário, média móvel de sete dias, hábitos por agenda, sequências e calendário de 90 dias.
 - Volume, 1RM estimado, possível platô e equilíbrio muscular com dados mínimos e alertas dispensáveis.
-- VIT: assistente com conversas e memórias no Supabase, contexto dos registros e fotos próprias opcionais. [Como usar](docs/VIT.md).
+- VIT: interface de chatbot com histórico lateral, campo de envio fixo, conversas e memórias no Supabase, contexto dos registros e fotos próprias opcionais. [Como usar](docs/VIT.md).
 - Gemini: refeições revisáveis por texto/porções ou foto, análise corporal opcional, coach e chat numérico com consultas fechadas, consentimentos e quotas.
 - Passos manuais ou importados por Atalhos do iPhone; backup completo JSON e exclusão autenticada de conta.
 
